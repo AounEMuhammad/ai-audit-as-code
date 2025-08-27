@@ -100,3 +100,53 @@ def ars_gate(risk: float, TI: float, XI: float):
         "t_bottleneck": t,
         "reason": reason,
     }
+
+def apply_gate_progressive(risk: float, TI: float, XI: float, tiers: dict):
+    """
+    Governance-aware with graceful fallback:
+    - Start from Risk-implied tier (critical/high/moderate/low)
+    - If TI/XI don't meet that tier, fall back to the highest lower tier that is satisfied
+    - If none, sandbox
+    """
+    t = min(TI, XI)
+
+    # 1) Determine risk-implied tier
+    if risk >= 0.85:
+        start_idx, order = 0, ["critical","high","moderate","low"]
+    elif risk >= 0.70:
+        start_idx, order = 1, ["high","moderate","low"]
+    elif risk >= 0.50:
+        start_idx, order = 2, ["moderate","low"]
+    elif risk >= 0.30:
+        start_idx, order = 3, ["low"]
+    else:
+        return {"tier":"minimal","decision":"sandbox","ars":(risk*t)**0.5,"t_bottleneck":t,
+                "reason":"Risk below 0.30 ⇒ minimal tier → sandbox."}
+
+    # 2) Walk down to find first tier whose thresholds are met
+    chosen_tier, passed_tier = None, None
+    for tier in order:
+        th = tiers[tier]
+        ti_ok = TI >= float(th.get("ti_min", 0.0))
+        xi_ok = XI >= float(th.get("xi_min", 0.0))
+        if ti_ok and xi_ok:
+            chosen_tier, passed_tier = tier, tier
+            break
+
+    # 3) Decide based on chosen tier
+    ars = (risk * t) ** 0.5
+    if chosen_tier is None:
+        # none satisfied → sandbox
+        return {"tier": order[0], "decision":"sandbox", "ars":ars, "t_bottleneck":t,
+                "reason": f"Risk tier '{order[0]}' not satisfied; no lower tier satisfied → sandbox."}
+
+    # Decision map per satisfied tier
+    decision_map = {
+        "critical": "deploy_with_audits",
+        "high":     "deploy_with_controls",
+        "moderate": "pilot",
+        "low":      "limited_use",
+    }
+    reason = f"Risk tier '{order[0]}' not satisfied; fell back to '{chosen_tier}' thresholds (met)."
+    return {"tier": chosen_tier, "decision": decision_map[chosen_tier], "ars":ars, "t_bottleneck":t, "reason": reason}
+
