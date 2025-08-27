@@ -169,7 +169,11 @@ with right:
 # -------- Left: Evidence (manual + fetch) --------
 with left:
     st.subheader("Evidence")
-    tab_up, tab_url = st.tabs(["Manual upload", "Fetch via URL (single JSON)"])
+   tab_up, tab_url, tab_all = st.tabs([
+    "Manual upload",
+    "Fetch via URL (single JSON)",
+    "Fetch ALL from base URL"
+])
 
     with tab_up:
         st.write("**Traceability**")
@@ -219,6 +223,9 @@ with left:
             load_json(lf), load_json(gf), load_json(fa),
             load_json(rs), load_json(cl), load_json(hc)
         )
+        # Prefer fetched components if available; otherwise keep manual uploads
+
+
 
         # Merge fetched one-shot JSON into XI if keys match
         if fetched:
@@ -229,7 +236,11 @@ with left:
                         xi_comp[v] = float(fetched[k])
                     except:
                         pass
+        if "fetched_ti" in st.session_state and st.session_state["fetched_ti"]:
+    ti_comp = st.session_state["fetched_ti"]
 
+if "fetched_xi" in st.session_state and st.session_state["fetched_xi"]:
+    xi_comp = st.session_state["fetched_xi"]
         TI = weighted_index(ti_comp, st.session_state.policy["ti_weights"])
         XI = weighted_index(xi_comp, st.session_state.policy["xi_weights"])
         risk, utility = compute_risk(st.session_state.policy["risk_inputs"])
@@ -255,3 +266,52 @@ with left:
         st.download_button("Download audit_report.json", json.dumps(report, indent=2), "audit_report.json", "application/json")
         st.info("Read-only share link (append to your app URL):")
         st.code(f"?mode=share&data={blob}", language="text")
+with tab_all:
+    st.caption("Fetch all TI & XI evidence in one step from a base raw GitHub URL (no trailing slash).")
+    base = st.text_input(
+        "Base URL",
+        "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
+    )
+
+    if st.button("Fetch ALL evidence from base URL"):
+        import requests
+
+        def get_json(relpath):
+            try:
+                r = requests.get(f"{base}/{relpath}", timeout=10)
+                r.raise_for_status()
+                return r.json()
+            except Exception:
+                return None
+
+        # Traceability artifacts
+        at_json = get_json("audit_trail.json")
+        rr_json = get_json("replication.json")
+        mc_json = get_json("model_card.json")
+        dataset_present = requests.get(f"{base}/dataset.hash", timeout=10).ok
+        trainlog_present = requests.get(f"{base}/logs/train.log", timeout=10).ok
+
+        # Build TI components from fetched
+        from audits.traceability import compute_TI_components_from_uploads
+        ti_comp = compute_TI_components_from_uploads(
+            dataset_present,
+            mc_json,
+            trainlog_present,
+            at_json,
+            rr_json
+        )
+
+        # Explainability JSONs
+        from audits.explainability import compute_XI_components_from_uploads
+        xi_comp = compute_XI_components_from_uploads(
+            get_json("explainability/local_fidelity.json"),
+            get_json("explainability/global_stability.json"),
+            get_json("explainability/faithfulness.json"),
+            get_json("explainability/robustness.json"),
+            get_json("explainability/coverage.json"),
+            get_json("explainability/human_comprehensibility.json"),
+        )
+
+        st.session_state["fetched_ti"] = ti_comp
+        st.session_state["fetched_xi"] = xi_comp
+        st.success("Fetched TI & XI evidence from base URL. Now click ‘Run Audit’.")
