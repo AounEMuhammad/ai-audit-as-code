@@ -2,3 +2,4 @@ streamlit
 pyyaml
 streamlit-authenticator
 requests
+bcrypt
