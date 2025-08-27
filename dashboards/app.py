@@ -251,3 +251,6 @@ with left:
             st.session_state["fetched_xi"] = xi_comp
             st.success("Fetched TI & XI evidence from base URL. Now click ‘Run Audit’.")
 
+    # --- Button immediately under the tabs ---
+    st.markdown("---")
+    run_clicked = st.button("Run Audit", type="primary")
