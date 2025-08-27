@@ -35,10 +35,21 @@ if params.get("mode",[""])[0] == "share" and "data" in params:
         st.error(f"Invalid shared data: {e}"); st.stop()
 
 # Auth
-CREDENTIALS = {"usernames": { os.getenv("AUDITOR_USER","auditor"): {
-    "name":"Auditor",
-    "password": stauth.Hasher([os.getenv("AUDITOR_PASS","change_me")]).generate()
-}}}
+# Build a robust hashed password (works whether generate() returns a list or a string)
+_raw = os.getenv("AUDITOR_PASS", "change_me")
+_hashed = stauth.Hasher([_raw]).generate()
+if isinstance(_hashed, (list, tuple)):
+    _hashed = _hashed[0]
+
+CREDENTIALS = {
+    "usernames": {
+        os.getenv("AUDITOR_USER", "auditor"): {
+            "name": "Auditor",
+            "password": _hashed,
+        }
+    }
+}
+
 authenticator = stauth.Authenticate(CREDENTIALS,"audit_cookie","audit_key",cookie_expiry_days=1)
 name, auth_status, username = authenticator.login("Login","main")
 if not auth_status: st.stop()
