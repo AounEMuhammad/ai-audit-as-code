@@ -16,7 +16,7 @@ from audits.explainability import compute_XI_components_from_uploads
 st.set_page_config(page_title="AI Audit-as-Code", layout="wide")
 
 # Share-mode (read-only) if a query param is provided
-params = st.experimental_get_query_params()
+params = st.query_params
 if params.get("mode",[""])[0] == "share" and "data" in params:
     st.title("Shared Audit Report (Read-only)")
     try:
@@ -37,7 +37,7 @@ if params.get("mode",[""])[0] == "share" and "data" in params:
 # Auth
 CREDENTIALS = {"usernames": { os.getenv("AUDITOR_USER","auditor"): {
     "name":"Auditor",
-    "password": stauth.Hasher([os.getenv("AUDITOR_PASS","change_me")]).generate()[0]
+    "password": stauth.Hasher([os.getenv("AUDITOR_PASS","change_me")]).generate()
 }}}
 authenticator = stauth.Authenticate(CREDENTIALS,"audit_cookie","audit_key",cookie_expiry_days=1)
 name, auth_status, username = authenticator.login("Login","main")
