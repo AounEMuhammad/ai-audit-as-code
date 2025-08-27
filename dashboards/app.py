@@ -203,69 +203,88 @@ with left:
                 st.error(f"Fetch failed: {e}")
 
     if st.button("Run Audit"):
-        def load_json(file):
-            if not file: return None
-            try: return json.load(file)
-            except: return None
+    def load_json(file):
+        if not file:
+            return None
+        try:
+            return json.load(file)
+        except:
+            return None
 
-        at_json = load_json(audit_trail)
-        rr_json = load_json(replication)
+    # --- 1) Build from MANUAL uploads (default baseline) ---
+    at_json = load_json(audit_trail)
+    rr_json = load_json(replication)
 
-        ti_comp = compute_TI_components_from_uploads(
-            dataset_hash is not None,
-            load_json(model_card),
-            train_log is not None,
-            at_json,
-            rr_json
-        )
+    ti_comp = compute_TI_components_from_uploads(
+        dataset_hash is not None,
+        load_json(model_card),
+        train_log is not None,
+        at_json,
+        rr_json
+    )
 
-        xi_comp = compute_XI_components_from_uploads(
-            load_json(lf), load_json(gf), load_json(fa),
-            load_json(rs), load_json(cl), load_json(hc)
-        )
-        # Prefer fetched components if available; otherwise keep manual uploads
+    xi_comp = compute_XI_components_from_uploads(
+        load_json(lf), load_json(gf), load_json(fa),
+        load_json(rs), load_json(cl), load_json(hc)
+    )
 
-
-
-        # Merge fetched one-shot JSON into XI if keys match
-        if fetched:
-            map_to = {"r2":"LF","spearman":"GF","deletion_auc":"FA","jaccard_topk":"RS","coverage":"CL","score":"HC"}
-            for k, v in map_to.items():
-                if k in fetched:
-                    try:
-                        xi_comp[v] = float(fetched[k])
-                    except:
-                        pass
-        if "fetched_ti" in st.session_state and st.session_state["fetched_ti"]:
-    ti_comp = st.session_state["fetched_ti"]
-
-if "fetched_xi" in st.session_state and st.session_state["fetched_xi"]:
-    xi_comp = st.session_state["fetched_xi"]
-        TI = weighted_index(ti_comp, st.session_state.policy["ti_weights"])
-        XI = weighted_index(xi_comp, st.session_state.policy["xi_weights"])
-        risk, utility = compute_risk(st.session_state.policy["risk_inputs"])
-
-        gate = apply_gate(risk, TI, XI, st.session_state.policy["tiers"])
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Risk", f"{risk:.3f}")
-        c2.metric("TI", f"{TI:.3f}")
-        c3.metric("XI", f"{XI:.3f}")
-        st.subheader("Gate Decision"); st.json(gate)
-        st.subheader("Traceability Components"); st.bar_chart(ti_comp)
-        st.subheader("Explainability Components"); st.bar_chart(xi_comp)
-
-        report = {
-            "risk": {"value": risk, "utility_core": utility, "inputs": st.session_state.policy["risk_inputs"]},
-            "traceability": {"components": ti_comp, "TI": TI},
-            "explainability": {"components": xi_comp, "XI": XI},
-            "gate": gate,
-            "policy": st.session_state.policy.get("meta", {}),
+    # --- 2) Merge SINGLE-URL fetched explainability (keeps manual TI; augments XI only) ---
+    if fetched:
+        map_to = {
+            "r2": "LF",
+            "spearman": "GF",
+            "deletion_auc": "FA",
+            "jaccard_topk": "RS",
+            "coverage": "CL",
+            "score": "HC",
         }
-        blob = base64.urlsafe_b64encode(json.dumps(report).encode()).decode()
-        st.download_button("Download audit_report.json", json.dumps(report, indent=2), "audit_report.json", "application/json")
-        st.info("Read-only share link (append to your app URL):")
-        st.code(f"?mode=share&data={blob}", language="text")
+        for k, v in map_to.items():
+            if k in fetched:
+                try:
+                    xi_comp[v] = float(fetched[k])
+                except:
+                    pass
+
+    # --- 3) Prefer FETCH-ALL (base URL) if present — full overrides for TI & XI ---
+    if "fetched_ti" in st.session_state and st.session_state["fetched_ti"]:
+        ti_comp = st.session_state["fetched_ti"]
+    if "fetched_xi" in st.session_state and st.session_state["fetched_xi"]:
+        xi_comp = st.session_state["fetched_xi"]
+
+    # --- 4) Compute indices and gate ---
+    TI = weighted_index(ti_comp, st.session_state.policy["ti_weights"])
+    XI = weighted_index(xi_comp, st.session_state.policy["xi_weights"])
+    risk, utility = compute_risk(st.session_state.policy["risk_inputs"])
+    gate = apply_gate(risk, TI, XI, st.session_state.policy["tiers"])
+
+    # --- 5) Display results ---
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Risk", f"{risk:.3f}")
+    c2.metric("TI", f"{TI:.3f}")
+    c3.metric("XI", f"{XI:.3f}")
+
+    st.subheader("Gate Decision")
+    st.json(gate)
+
+    st.subheader("Traceability Components")
+    st.bar_chart(ti_comp)
+
+    st.subheader("Explainability Components")
+    st.bar_chart(xi_comp)
+
+    report = {
+        "risk": {"value": risk, "utility_core": utility, "inputs": st.session_state.policy["risk_inputs"]},
+        "traceability": {"components": ti_comp, "TI": TI},
+        "explainability": {"components": xi_comp, "XI": XI},
+        "gate": gate,
+        "policy": st.session_state.policy.get("meta", {}),
+    }
+
+    blob = base64.urlsafe_b64encode(json.dumps(report).encode()).decode()
+    st.download_button("Download audit_report.json", json.dumps(report, indent=2), "audit_report.json", "application/json")
+    st.info("Read-only share link (append to your app URL):")
+    st.code(f"?mode=share&data={blob}", language="text")
+
 with tab_all:
     st.caption("Fetch all TI & XI evidence in one step from a base raw GitHub URL (no trailing slash).")
     base = st.text_input(
