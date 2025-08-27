@@ -1,12 +1,12 @@
 # pipelines/validate_evidence.py
-import os, sys, requests, json
+import os, requests
 
 EVIDENCE_BASE = os.environ.get(
     "EVIDENCE_BASE",
     "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
 )
 
-def must_have_json(relpath, keys=None):
+def must_json(relpath, keys=None):
     url = f"{EVIDENCE_BASE}/{relpath}"
     r = requests.get(url, timeout=15)
     r.raise_for_status()
@@ -28,18 +28,18 @@ def must_exist(relpath):
     return True
 
 # ---- Traceability ----
-must_have_json("audit_trail.json", keys=["immutable", "records"])
-must_have_json("replication.json", keys=["pass_rate"])
+must_json("audit_trail.json", keys=["immutable", "records"])
+must_json("replication.json", keys=["pass_rate"])
 must_exist("dataset.hash")
 must_exist("logs/train.log")
-must_have_json("model_card.json")  # you can tighten schema later
+must_json("model_card.json")  # tighten later if you want
 
 # ---- Explainability ----
-must_have_json("explainability/local_fidelity.json", keys=["r2"])
-must_have_json("explainability/global_stability.json", keys=["spearman"])
-must_have_json("explainability/faithfulness.json", keys=["deletion_auc"])
-must_have_json("explainability/robustness.json", keys=["jaccard_topk"])
-must_have_json("explainability/coverage.json", keys=["coverage"])
-must_have_json("explainability/human_comprehensibility.json", keys=["score"])
+must_json("explainability/local_fidelity.json", keys=["r2"])
+must_json("explainability/global_stability.json", keys=["spearman"])
+must_json("explainability/faithfulness.json", keys=["deletion_auc"])
+must_json("explainability/robustness.json", keys=["jaccard_topk"])
+must_json("explainability/coverage.json", keys=["coverage"])
+must_json("explainability/human_comprehensibility.json", keys=["score"])
 
 print("Evidence schema OK.")
