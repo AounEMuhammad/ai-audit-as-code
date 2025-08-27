@@ -1,6 +1,7 @@
-# --- AI Audit-as-Code: full hosted app.py (manual upload + fetch single + fetch ALL) ---
-# Works with Streamlit Community Cloud; simple sidebar login using secrets/env.
-# Dependencies: streamlit, pyyaml, requests, bcrypt (optional but supported for hashed secret)
+# --- AI Audit-as-Code: full hosted app.py (manual upload + fetch single + fetch ALL + health panel) ---
+# Streamlit dependencies: streamlit, pyyaml, requests, bcrypt (optional).
+# Reads login from Streamlit Secrets first, then env:
+#   AUDITOR_USER, AUDITOR_PASS
 
 import os, sys, json, yaml, base64, requests
 import streamlit as st
@@ -11,7 +12,7 @@ REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-# ---------------- Optional bcrypt support for hashed passwords ----------------
+# ---------------- Optional bcrypt support (hashed secrets) ----------------
 try:
     import bcrypt
     def verify_password(entered: str, secret: str) -> bool:
@@ -29,11 +30,10 @@ st.set_page_config(page_title="AI Audit-as-Code", layout="wide")
 
 # ---------------- Share-mode via query params ----------------
 def _qp_get(name: str, default: str = "") -> str:
-    # st.query_params is a mapping; normalize to single string
-    val = st.query_params.get(name, default)
-    if isinstance(val, (list, tuple)):
-        return val[0] if val else default
-    return val
+    v = st.query_params.get(name, default)
+    if isinstance(v, (list, tuple)):  # robust
+        return v[0] if v else default
+    return v
 
 mode = _qp_get("mode", "")
 share_blob = _qp_get("data", "")
@@ -93,7 +93,7 @@ for key, default in [
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ---------------- Project imports (after path guard & login) ----------------
+# ---------------- Project imports (after guard & login) ----------------
 from audits.cortex import compute_risk
 from audits.tracex import weighted_index, TI_DEFAULT, XI_DEFAULT, apply_gate
 from audits.traceability import compute_TI_components_from_uploads
@@ -111,9 +111,9 @@ if os.path.exists(preset_path):
     except Exception as e:
         st.sidebar.error(f"Preset load error: {e}")
 
-# Default in-session policy
+# ---------------- Default policy in session ----------------
 default_policy = {
-    "meta": {"name":"Hosted Demo Policy","version":"0.4"},
+    "meta": {"name":"Hosted Demo Policy","version":"0.5"},
     "risk_inputs": {"L":0.8,"I":0.7,"k":3.0,"C":0.75,"G":0.80,"T":0.60,"E":0.70,"R":0.65},
     "tiers": {
         "critical":{"ti_min":0.80,"xi_min":0.75},
@@ -164,8 +164,7 @@ with right:
 
     with st.expander("TI / XI Weights"):
         c1, c2 = st.columns(2)
-        ti_w = {}
-        xi_w = {}
+        ti_w = {}; xi_w = {}
         with c1:
             st.markdown("**TI weights**")
             for k_ti, v in st.session_state.policy["ti_weights"].items():
@@ -183,6 +182,56 @@ with right:
 
     pol_yaml = yaml.safe_dump(st.session_state.policy, sort_keys=False)
     st.download_button("Download policy.yaml", pol_yaml, "policy.yaml", "text/yaml")
+
+# ---------------- Health / Status panel ----------------
+with st.expander("Health / Status", expanded=False):
+    preset_name = pick if pick != "(none)" else "(custom)"
+    st.write(f"**Preset:** {preset_name}")
+
+    demo_base = "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
+    st.write(f"**Example base URL:** {demo_base}")
+
+    # Last commit timestamp for demo_run (GitHub API)
+    try:
+        owner_repo = "AounEMuhammad/ai-audit-as-code"
+        path = "evidence/demo_run"
+        r = requests.get(
+            f"https://api.github.com/repos/{owner_repo}/commits",
+            params={"path": path, "per_page": 1}, timeout=10
+        )
+        if r.ok and len(r.json()) > 0:
+            ts = r.json()[0]["commit"]["committer"]["date"]
+            st.write(f"**Last evidence commit (demo_run):** {ts}")
+    except Exception:
+        pass
+
+    # Check required evidence presence for demo_run
+    required = [
+        "audit_trail.json",
+        "replication.json",
+        "dataset.hash",
+        "logs/train.log",
+        "model_card.json",
+        "explainability/local_fidelity.json",
+        "explainability/global_stability.json",
+        "explainability/faithfulness.json",
+        "explainability/robustness.json",
+        "explainability/coverage.json",
+        "explainability/human_comprehensibility.json",
+    ]
+    missing = []
+    for rel in required:
+        url = f"{demo_base}/{rel}"
+        try:
+            head = requests.head(url, timeout=5)
+            if head.status_code >= 400:
+                missing.append(rel)
+        except Exception:
+            missing.append(rel)
+    if missing:
+        st.warning(f"Missing (demo_run): {', '.join(missing)}")
+    else:
+        st.success("All required evidence present for demo_run.")
 
 # ---------------- LEFT: Evidence tabs + Run button ----------------
 with left:
