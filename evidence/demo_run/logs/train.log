@@ -1,0 +1,2 @@
+model=RandomForest n_estimators=300
+auc=0.9926 acc=0.9415
