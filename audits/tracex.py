@@ -1,7 +1,7 @@
 # audits/tracex.py
 import math
 
-# Default weights (same as before)
+# Default weights
 TI_DEFAULT = dict(DV=0.20, MV=0.20, PL=0.20, AT=0.20, RR=0.20)
 XI_DEFAULT = dict(LF=0.20, GF=0.15, FA=0.20, RS=0.15, CL=0.15, HC=0.15)
 
@@ -13,7 +13,7 @@ def weighted_index(values: dict, weights: dict) -> float:
     return max(0.0, min(1.0, num / den if den else 0.0))
 
 def apply_gate(risk: float, TI: float, XI: float, tiers: dict):
-    """Governance-correct gate: pick tier by risk, require TI & XI >= tier thresholds."""
+    """Governance-correct gate: pick tier by risk; require TI & XI >= thresholds for that tier."""
     t = min(TI, XI)
     if risk >= 0.85:
         tier = "critical"; gate = tiers["critical"]
@@ -104,49 +104,45 @@ def ars_gate(risk: float, TI: float, XI: float):
 def apply_gate_progressive(risk: float, TI: float, XI: float, tiers: dict):
     """
     Governance-aware with graceful fallback:
-    - Start from Risk-implied tier (critical/high/moderate/low)
+    - Start from risk-implied tier (critical/high/moderate/low)
     - If TI/XI don't meet that tier, fall back to the highest lower tier that is satisfied
     - If none, sandbox
     """
     t = min(TI, XI)
 
-    # 1) Determine risk-implied tier
+    # Determine risk-implied order to check
     if risk >= 0.85:
-        start_idx, order = 0, ["critical","high","moderate","low"]
+        order = ["critical","high","moderate","low"]
     elif risk >= 0.70:
-        start_idx, order = 1, ["high","moderate","low"]
+        order = ["high","moderate","low"]
     elif risk >= 0.50:
-        start_idx, order = 2, ["moderate","low"]
+        order = ["moderate","low"]
     elif risk >= 0.30:
-        start_idx, order = 3, ["low"]
+        order = ["low"]
     else:
         return {"tier":"minimal","decision":"sandbox","ars":(risk*t)**0.5,"t_bottleneck":t,
                 "reason":"Risk below 0.30 ⇒ minimal tier → sandbox."}
 
-    # 2) Walk down to find first tier whose thresholds are met
-    chosen_tier, passed_tier = None, None
+    # Find highest tier in order whose thresholds are met
+    chosen = None
     for tier in order:
         th = tiers[tier]
         ti_ok = TI >= float(th.get("ti_min", 0.0))
         xi_ok = XI >= float(th.get("xi_min", 0.0))
         if ti_ok and xi_ok:
-            chosen_tier, passed_tier = tier, tier
+            chosen = tier
             break
 
-    # 3) Decide based on chosen tier
     ars = (risk * t) ** 0.5
-    if chosen_tier is None:
-        # none satisfied → sandbox
+    if not chosen:
         return {"tier": order[0], "decision":"sandbox", "ars":ars, "t_bottleneck":t,
                 "reason": f"Risk tier '{order[0]}' not satisfied; no lower tier satisfied → sandbox."}
 
-    # Decision map per satisfied tier
     decision_map = {
         "critical": "deploy_with_audits",
         "high":     "deploy_with_controls",
         "moderate": "pilot",
         "low":      "limited_use",
     }
-    reason = f"Risk tier '{order[0]}' not satisfied; fell back to '{chosen_tier}' thresholds (met)."
-    return {"tier": chosen_tier, "decision": decision_map[chosen_tier], "ars":ars, "t_bottleneck":t, "reason": reason}
-
+    return {"tier": chosen, "decision": decision_map[chosen], "ars":ars, "t_bottleneck":t,
+            "reason": f"Risk tier '{order[0]}' not satisfied; fell back to '{chosen}' thresholds (met)."}
