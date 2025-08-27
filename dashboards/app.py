@@ -207,30 +207,25 @@ with left:
         hc = st.file_uploader("human_comprehensibility.json", type=["json"])
 
     # --- Single JSON fetch tab ---
-    with tab_url:
-        url = st.text_input("Direct JSON URL (e.g., raw GitHub link)")
-        if st.button("Fetch single JSON"):
-            try:
-                r = requests.get(url, timeout=10); r.raise_for_status()
-                fetched = r.json()
-                st.session_state["fetched_single"] = fetched   # persist XI-only dict
-                st.success("Fetched JSON:"); st.json(fetched)
-            except Exception as e:
-                st.error(f"Fetch failed: {e}")
-
-        if st.button("Clear single JSON fetched"):
-            st.session_state["fetched_single"] = None
-            st.info("Cleared single JSON fetch.")
-
-    # --- Fetch ALL tab ---
+        # --- Fetch ALL tab ---
     with tab_all:
         st.caption("Fetch all TI & XI evidence from a base raw GitHub URL (no trailing slash).")
-        base = st.text_input(
-            "Base URL",
-            "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
-        )
 
-        if st.button("Fetch ALL evidence from base URL"):
+        # Scenario selector (relative subfolder under evidence/)
+        scenarios = {
+            "demo_run": "evidence/demo_run",
+            "Scenario_A_Strong": "evidence/Scenario_A_Strong",
+            "Scenario_B_Traceability_Weak": "evidence/Scenario_B_Traceability_Weak",
+            "Scenario_C_Explainability_Weak": "evidence/Scenario_C_Explainability_Weak",
+        }
+        scen = st.selectbox("Scenario folder", list(scenarios.keys()), index=0)
+
+        # Build base URL automatically from repo + scenario folder
+        repo_base = "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main"
+        base = f"{repo_base}/{scenarios[scen]}"
+        st.text_input("Base URL (auto)", base, disabled=True)
+
+        if st.button("Fetch ALL evidence from selected scenario"):
             def get_json(relpath):
                 try:
                     r = requests.get(f"{base}/{relpath}", timeout=10)
@@ -265,12 +260,13 @@ with left:
 
             st.session_state["fetched_ti"] = ti_comp_all
             st.session_state["fetched_xi"] = xi_comp_all
-            st.success("Fetched TI & XI evidence from base URL. Now click ‘Run Audit’.")
+            st.success(f"Fetched TI & XI from {scenarios[scen]}. Now click ‘Run Audit’.")
 
         if st.button("Clear ALL fetched evidence"):
             st.session_state["fetched_ti"] = None
             st.session_state["fetched_xi"] = None
             st.info("Cleared fetched TI & XI.")
+)
 
     # --- Button immediately under the tabs ---
     st.markdown("---")
