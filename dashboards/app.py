@@ -7,6 +7,7 @@ if REPO_ROOT not in sys.path:
 
 import os, json, yaml, base64, requests
 import streamlit as st
+import bcrypt
 import streamlit_authenticator as stauth
 from audits.cortex import compute_risk
 from audits.tracex import weighted_index, TI_DEFAULT, XI_DEFAULT, apply_gate
@@ -37,15 +38,13 @@ if params.get("mode",[""])[0] == "share" and "data" in params:
 # Auth
 # Build a robust hashed password (works whether generate() returns a list or a string)
 _raw = os.getenv("AUDITOR_PASS", "change_me")
-_hashed = stauth.Hasher([_raw]).generate()
-if isinstance(_hashed, (list, tuple)):
-    _hashed = _hashed[0]
+_hashed = bcrypt.hashpw(_raw.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 CREDENTIALS = {
     "usernames": {
         os.getenv("AUDITOR_USER", "auditor"): {
             "name": "Auditor",
-            "password": _hashed,
+            "password": _hashed,  # hashed string
         }
     }
 }
