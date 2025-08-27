@@ -1,0 +1,64 @@
+name: Train and Publish Evidence
+
+on:
+  workflow_dispatch:   # run manually from Actions
+    inputs:
+      run_folder:
+        description: "Run folder under evidence/"
+        required: false
+        default: ""
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install numpy pandas scikit-learn shap tqdm pyarrow
+
+      - name: Determine run folder
+        id: runfolder
+        run: |
+          if [ -n "${{ github.event.inputs.run_folder }}" ]; then
+            echo "RUNFOLDER=evidence/${{ github.event.inputs.run_folder }}" >> $GITHUB_OUTPUT
+          else
+            echo "RUNFOLDER=evidence/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
+          echo "Using $RUNFOLDER"
+
+      - name: Train & write TI artifacts
+        env:
+          EVIDENCE_OUT_BASE: evidence
+          RUN_FOLDER: ${{ steps.runfolder.outputs.RUNFOLDER }}
+        run: |
+          python pipelines/train_and_log.py
+
+      - name: Compute XI
+        env:
+          RUN_FOLDER: ${{ steps.runfolder.outputs.RUNFOLDER }}
+        run: |
+          python pipelines/compute_xi.py
+
+      - name: Commit run folder
+        run: |
+          git config user.name "evidence-bot"
+          git config user.email "evidence@users.noreply.github.com"
+          git add ${{ steps.runfolder.outputs.RUNFOLDER }}
+          git commit -m "Publish evidence (${{ steps.runfolder.outputs.RUNFOLDER }})" || echo "No changes"
+          git push
+
+      - name: Print base URL
+        run: |
+          echo "Base URL:"
+          echo "https://raw.githubusercontent.com/${{ github.repository }}/main/${{ steps.runfolder.outputs.RUNFOLDER }}"
