@@ -1,0 +1,31 @@
+name: Policy Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      # You can change these defaults per repo/branch:
+      PRESET_NAME: "NIST AI RMF (High governance posture)"
+      EVIDENCE_BASE: "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt pyyaml requests
+
+      - name: Run policy gate (PR must satisfy gate)
+        run: |
+          python pipelines/run_cli_audit.py
