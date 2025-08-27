@@ -1,13 +1,17 @@
-# --- Force repo root on PYTHONPATH so imports work on Streamlit Cloud ---
+# --- AI Audit-as-Code: full hosted app.py (manual upload + fetch single + fetch ALL) ---
+# Works with Streamlit Community Cloud; simple sidebar login using secrets/env.
+# Dependencies: streamlit, pyyaml, requests, bcrypt (optional but supported for hashed secret)
+
 import os, sys, json, yaml, base64, requests
 import streamlit as st
 
+# ---------------- Path guard (imports work on Streamlit Cloud) ----------------
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-# Optional bcrypt support (if AUDITOR_PASS is a $2b$... hash)
+# ---------------- Optional bcrypt support for hashed passwords ----------------
 try:
     import bcrypt
     def verify_password(entered: str, secret: str) -> bool:
@@ -23,17 +27,18 @@ except Exception:
 
 st.set_page_config(page_title="AI Audit-as-Code", layout="wide")
 
-# ----------------- Query params (share link support) -----------------
+# ---------------- Share-mode via query params ----------------
 def _qp_get(name: str, default: str = "") -> str:
-    v = st.query_params.get(name, default)
-    if isinstance(v, (list, tuple)):  # be robust across versions
-        v = v[0] if v else default
-    return v
+    # st.query_params is a mapping; normalize to single string
+    val = st.query_params.get(name, default)
+    if isinstance(val, (list, tuple)):
+        return val[0] if val else default
+    return val
 
 mode = _qp_get("mode", "")
 share_blob = _qp_get("data", "")
 
-# ----------------- Simple sidebar login -----------------
+# ---------------- Sidebar login (secrets → env → default) ----------------
 AUDITOR_USER = st.secrets.get("AUDITOR_USER", os.getenv("AUDITOR_USER", "auditor"))
 AUDITOR_PASS = st.secrets.get("AUDITOR_PASS", os.getenv("AUDITOR_PASS", "change_me"))
 
@@ -62,7 +67,7 @@ with st.sidebar:
 if not st.session_state.authed:
     st.stop()
 
-# ----------------- Read-only share mode -----------------
+# ---------------- Read-only share mode ----------------
 if mode == "share" and share_blob:
     st.title("Shared Audit Report (Read-only)")
     try:
@@ -79,16 +84,16 @@ if mode == "share" and share_blob:
         st.error(f"Invalid shared data: {e}")
         st.stop()
 
-# ----------------- Keep fetched evidence across reruns -----------------
+# ---------------- Persist fetched evidence across reruns ----------------
 for key, default in [
-    ("fetched_single", None),  # single-JSON fetched dict (XI-only)
-    ("fetched_ti", None),      # fetch-ALL computed TI components
-    ("fetched_xi", None),      # fetch-ALL computed XI components
+    ("fetched_single", None),  # dict from single JSON fetch (XI-only)
+    ("fetched_ti", None),      # dict from Fetch ALL (TI components)
+    ("fetched_xi", None),      # dict from Fetch ALL (XI components)
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ----------------- Project imports (after path guard & login) -----------------
+# ---------------- Project imports (after path guard & login) ----------------
 from audits.cortex import compute_risk
 from audits.tracex import weighted_index, TI_DEFAULT, XI_DEFAULT, apply_gate
 from audits.traceability import compute_TI_components_from_uploads
@@ -96,7 +101,7 @@ from audits.explainability import compute_XI_components_from_uploads
 
 st.title("AI Audit-as-Code — CORTEX + TRACE-X (Hosted)")
 
-# ----------------- Load presets -----------------
+# ---------------- Load presets ----------------
 preset_path = os.path.join(REPO_ROOT, "configs", "jurisdictions.yaml")
 presets = {}
 if os.path.exists(preset_path):
@@ -106,7 +111,7 @@ if os.path.exists(preset_path):
     except Exception as e:
         st.sidebar.error(f"Preset load error: {e}")
 
-# Default policy if none in session
+# Default in-session policy
 default_policy = {
     "meta": {"name":"Hosted Demo Policy","version":"0.4"},
     "risk_inputs": {"L":0.8,"I":0.7,"k":3.0,"C":0.75,"G":0.80,"T":0.60,"E":0.70,"R":0.65},
@@ -124,7 +129,7 @@ if "policy" not in st.session_state:
 
 left, right = st.columns(2)
 
-# ----------------- RIGHT: Jurisdiction & Policy -----------------
+# ---------------- RIGHT: Jurisdiction & Policy ----------------
 with right:
     st.subheader("Jurisdiction & Policy")
     pick = st.selectbox("Apply preset", ["(none)"] + list(presets.keys()))
@@ -170,7 +175,7 @@ with right:
             for k_xi, v in st.session_state.policy["xi_weights"].items():
                 xi_w[k_xi] = st.slider(f"XI.{k_xi}", 0.0,1.0, float(v), 0.05, key=f"xi_{k_xi}")
 
-    # Save updated policy back to session
+    # Save updated policy
     st.session_state.policy["risk_inputs"] = dict(L=L, I=I, k=k, C=Cx, G=G, T=T, E=E, R=Rm)
     st.session_state.policy["tiers"] = tiers
     st.session_state.policy["ti_weights"] = ti_w
@@ -179,7 +184,7 @@ with right:
     pol_yaml = yaml.safe_dump(st.session_state.policy, sort_keys=False)
     st.download_button("Download policy.yaml", pol_yaml, "policy.yaml", "text/yaml")
 
-# ----------------- LEFT: Evidence + Buttons -----------------
+# ---------------- LEFT: Evidence tabs + Run button ----------------
 with left:
     st.subheader("Evidence")
 
@@ -189,7 +194,7 @@ with left:
         "Fetch ALL from base URL"
     ])
 
-    # --- Manual upload tab ---
+    # --- Manual upload ---
     with tab_up:
         st.write("**Traceability**")
         dataset_hash = st.file_uploader("dataset.hash", type=None)
@@ -206,12 +211,24 @@ with left:
         cl = st.file_uploader("coverage.json", type=["json"])
         hc = st.file_uploader("human_comprehensibility.json", type=["json"])
 
-    # --- Single JSON fetch tab ---
-        # --- Fetch ALL tab ---
+    # --- Fetch single JSON (XI merge) ---
+    with tab_url:
+        url = st.text_input("Direct JSON URL (e.g., raw GitHub link)")
+        if st.button("Fetch single JSON"):
+            try:
+                r = requests.get(url, timeout=10); r.raise_for_status()
+                fetched = r.json()
+                st.session_state["fetched_single"] = fetched     # persist XI-only payload
+                st.success("Fetched JSON:"); st.json(fetched)
+            except Exception as e:
+                st.error(f"Fetch failed: {e}")
+        if st.button("Clear single JSON fetched"):
+            st.session_state["fetched_single"] = None
+            st.info("Cleared single JSON fetch.")
+
+    # --- Fetch ALL with scenario selector ---
     with tab_all:
         st.caption("Fetch all TI & XI evidence from a base raw GitHub URL (no trailing slash).")
-
-        # Scenario selector (relative subfolder under evidence/)
         scenarios = {
             "demo_run": "evidence/demo_run",
             "Scenario_A_Strong": "evidence/Scenario_A_Strong",
@@ -219,8 +236,6 @@ with left:
             "Scenario_C_Explainability_Weak": "evidence/Scenario_C_Explainability_Weak",
         }
         scen = st.selectbox("Scenario folder", list(scenarios.keys()), index=0)
-
-        # Build base URL automatically from repo + scenario folder
         repo_base = "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main"
         base = f"{repo_base}/{scenarios[scen]}"
         st.text_input("Base URL (auto)", base, disabled=True)
@@ -234,7 +249,6 @@ with left:
                 except Exception:
                     return None
 
-            # Traceability
             at_json = get_json("audit_trail.json")
             rr_json = get_json("replication.json")
             mc_json = get_json("model_card.json")
@@ -248,7 +262,6 @@ with left:
                 at_json,
                 rr_json
             )
-
             xi_comp_all = compute_XI_components_from_uploads(
                 get_json("explainability/local_fidelity.json"),
                 get_json("explainability/global_stability.json"),
@@ -257,35 +270,27 @@ with left:
                 get_json("explainability/coverage.json"),
                 get_json("explainability/human_comprehensibility.json"),
             )
-
             st.session_state["fetched_ti"] = ti_comp_all
             st.session_state["fetched_xi"] = xi_comp_all
             st.success(f"Fetched TI & XI from {scenarios[scen]}. Now click ‘Run Audit’.")
-
         if st.button("Clear ALL fetched evidence"):
             st.session_state["fetched_ti"] = None
             st.session_state["fetched_xi"] = None
             st.info("Cleared fetched TI & XI.")
-)
 
-    # --- Button immediately under the tabs ---
     st.markdown("---")
     run_clicked = st.button("Run Audit", type="primary")
 
-# ======================= Run Audit handler =======================
+# ---------------- Run Audit handler ----------------
 if run_clicked:
     def load_json(file):
-        if not file:
-            return None
-        try:
-            return json.load(file)
-        except:
-            return None
+        if not file: return None
+        try: return json.load(file)
+        except: return None
 
-    # 1) Build from MANUAL uploads (default baseline)
+    # 1) Build from MANUAL uploads
     at_json = load_json(audit_trail)
     rr_json = load_json(replication)
-
     ti_comp = compute_TI_components_from_uploads(
         dataset_hash is not None,
         load_json(model_card),
@@ -293,31 +298,21 @@ if run_clicked:
         at_json,
         rr_json
     )
-
     xi_comp = compute_XI_components_from_uploads(
         load_json(lf), load_json(gf), load_json(fa),
         load_json(rs), load_json(cl), load_json(hc)
     )
 
-    # 2) Merge SINGLE-URL fetched explainability (keeps manual TI; augments XI only)
+    # 2) Merge SINGLE-URL fetched explainability (XI only)
     fetched_single = st.session_state.get("fetched_single")
     if fetched_single:
-        map_to = {
-            "r2": "LF",
-            "spearman": "GF",
-            "deletion_auc": "FA",
-            "jaccard_topk": "RS",
-            "coverage": "CL",
-            "score": "HC",
-        }
+        map_to = {"r2":"LF","spearman":"GF","deletion_auc":"FA","jaccard_topk":"RS","coverage":"CL","score":"HC"}
         for k, v in map_to.items():
             if k in fetched_single:
-                try:
-                    xi_comp[v] = float(fetched_single[k])
-                except:
-                    pass
+                try: xi_comp[v] = float(fetched_single[k])
+                except: pass
 
-    # 3) Prefer FETCH-ALL (base URL) if present — full overrides for TI & XI
+    # 3) Prefer FETCH-ALL (full override)
     if st.session_state.get("fetched_ti"):
         ti_comp = st.session_state["fetched_ti"]
     if st.session_state.get("fetched_xi"):
