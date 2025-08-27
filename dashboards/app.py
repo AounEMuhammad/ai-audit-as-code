@@ -1,3 +1,9 @@
+# --- Force repo root on PYTHONPATH so 'audits' imports work on Streamlit Cloud ---
+import os, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 import os, json, yaml, base64, requests
 import streamlit as st
