@@ -1,13 +1,12 @@
 name: Generate Evidence (Demo)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:      # allow manual run from Actions tab
   schedule:
-    - cron: "0 9 * * 1"
+    - cron: "0 9 * * 1"   # optional: Mondays 09:00 UTC
 
-# 👇 add this
 permissions:
-  contents: write
+  contents: write         # allow GITHUB_TOKEN to push commits
 
 jobs:
   build:
@@ -15,7 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # default token will be used; leave as-is
           persist-credentials: true
 
       - uses: actions/setup-python@v5
@@ -38,41 +36,5 @@ jobs:
           git config user.email "evidence@users.noreply.github.com"
           git add evidence/demo_run
           git commit -m "Update demo evidence (Action)" || echo "No changes"
-          # pull just in case someone pushed concurrently
           git pull --rebase
-          git push
-
-name: Generate Evidence (Demo)
-
-on:
-  workflow_dispatch:      # allow manual trigger from Actions tab
-  schedule:
-    - cron: "0 9 * * 1"   # optional: every Monday 09:00 UTC
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install deps
-        run: |
-          pip install numpy pandas scikit-learn shap lime tqdm pyarrow
-
-      - name: Generate evidence
-        env:
-          EVIDENCE_OUT: evidence/demo_run
-        run: |
-          python compute_evidence.py
-
-      - name: Commit evidence
-        run: |
-          git config user.name "evidence-bot"
-          git config user.email "evidence@users.noreply.github.com"
-          git add evidence/demo_run
-          git commit -m "Update demo evidence (Action)" || echo "No changes"
           git push
