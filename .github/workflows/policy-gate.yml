@@ -10,9 +10,10 @@ permissions:
 jobs:
   gate:
     runs-on: ubuntu-latest
+
+    # 👇 Set which preset and evidence base to enforce for this gate
     env:
-      # You can change these defaults per repo/branch:
-      PRESET_NAME: "NIST AI RMF (High governance posture)"
+      PRESET_NAME: "EU AI Act (Annex III - Critical)"
       EVIDENCE_BASE: "https://raw.githubusercontent.com/AounEMuhammad/ai-audit-as-code/main/evidence/demo_run"
 
     steps:
@@ -25,6 +26,39 @@ jobs:
       - name: Install deps
         run: |
           pip install -r requirements.txt pyyaml requests
+
+      # (Optional) Quick schema validator — uncomment to enable strict checks
+      # - name: Validate evidence schema
+      #   run: |
+      #     python - << 'PY'
+      #     import os, requests
+      #     BASE = os.environ.get("EVIDENCE_BASE")
+      #     def must_json(path, keys=None):
+      #         url=f"{BASE}/{path}"
+      #         r=requests.get(url, timeout=15); r.raise_for_status()
+      #         data=r.json()
+      #         if keys:
+      #             for k in keys:
+      #                 if k not in data: raise ValueError(f"Missing '{k}' in {path}")
+      #     def must_exist(path):
+      #         url=f"{BASE}/{path}"
+      #         r=requests.get(url, timeout=15)
+      #         assert r.ok, f"{path} missing"
+      #     # Traceability
+      #     must_json("audit_trail.json", ["immutable","records"])
+      #     must_json("replication.json", ["pass_rate"])
+      #     must_exist("dataset.hash")
+      #     must_exist("logs/train.log")
+      #     must_json("model_card.json")
+      #     # Explainability
+      #     must_json("explainability/local_fidelity.json", ["r2"])
+      #     must_json("explainability/global_stability.json", ["spearman"])
+      #     must_json("explainability/faithfulness.json", ["deletion_auc"])
+      #     must_json("explainability/robustness.json", ["jaccard_topk"])
+      #     must_json("explainability/coverage.json", ["coverage"])
+      #     must_json("explainability/human_comprehensibility.json", ["score"])
+      #     print("Evidence schema OK.")
+      #     PY
 
       - name: Run policy gate (PR must satisfy gate)
         run: |
