@@ -1,12 +1,11 @@
 # --- Force repo root on PYTHONPATH so imports work on Streamlit Cloud ---
-import os, sys
+import os, sys, json, yaml, base64, requests
+import streamlit as st
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
-
-import json, yaml, base64, requests
-import streamlit as st
 
 # Optional bcrypt support (if AUDITOR_PASS is a $2b$... hash)
 try:
@@ -22,33 +21,22 @@ except Exception:
     def verify_password(entered: str, secret: str) -> bool:
         return entered == secret
 
-# --- Simple sidebar login (no external auth package) ---
-AUDITOR_USER = os.getenv("AUDITOR_USER", "auditor")
-AUDITOR_PASS = os.getenv("AUDITOR_PASS", "change_me")
-
 st.set_page_config(page_title="AI Audit-as-Code", layout="wide")
 
-# Read-only share mode via query params (new API)
-params = st.query_params
+# ----------------- Query params (share link support) -----------------
+def _qp_get(name: str, default: str = "") -> str:
+    v = st.query_params.get(name, default)
+    if isinstance(v, (list, tuple)):  # be robust across versions
+        v = v[0] if v else default
+    return v
 
-if params.get("mode", "") == "share" and "data" in params:
-    st.title("Shared Audit Report (Read-only)")
-    try:
-        blob = params["data"]
-        data = json.loads(base64.urlsafe_b64decode(blob.encode()).decode())
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Risk", f'{data["risk"]["value"]:.3f}')
-        c2.metric("TI", f'{data["traceability"]["TI"]:.3f}')
-        c3.metric("XI", f'{data["explainability"]["XI"]:.3f}')
-        st.subheader("Gate Decision"); st.json(data["gate"])
-        st.subheader("Traceability Components"); st.bar_chart(data["traceability"]["components"])
-        st.subheader("Explainability Components"); st.bar_chart(data["explainability"]["components"])
-        st.stop()
-    except Exception as e:
-        st.error(f"Invalid shared data: {e}")
-        st.stop()
+mode = _qp_get("mode", "")
+share_blob = _qp_get("data", "")
 
-# Sidebar login form
+# ----------------- Simple sidebar login -----------------
+AUDITOR_USER = st.secrets.get("AUDITOR_USER", os.getenv("AUDITOR_USER", "auditor"))
+AUDITOR_PASS = st.secrets.get("AUDITOR_PASS", os.getenv("AUDITOR_PASS", "change_me"))
+
 if "authed" not in st.session_state:
     st.session_state.authed = False
 
@@ -73,9 +61,34 @@ with st.sidebar:
 
 if not st.session_state.authed:
     st.stop()
-# --- end login ---
 
-# Imports from the project (after path guard)
+# ----------------- Read-only share mode -----------------
+if mode == "share" and share_blob:
+    st.title("Shared Audit Report (Read-only)")
+    try:
+        data = json.loads(base64.urlsafe_b64decode(share_blob.encode()).decode())
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Risk", f'{data["risk"]["value"]:.3f}')
+        c2.metric("TI", f'{data["traceability"]["TI"]:.3f}')
+        c3.metric("XI", f'{data["explainability"]["XI"]:.3f}')
+        st.subheader("Gate Decision"); st.json(data["gate"])
+        st.subheader("Traceability Components"); st.bar_chart(data["traceability"]["components"])
+        st.subheader("Explainability Components"); st.bar_chart(data["explainability"]["components"])
+        st.stop()
+    except Exception as e:
+        st.error(f"Invalid shared data: {e}")
+        st.stop()
+
+# ----------------- Keep fetched evidence across reruns -----------------
+for key, default in [
+    ("fetched_single", None),  # single-JSON fetched dict (XI-only)
+    ("fetched_ti", None),      # fetch-ALL computed TI components
+    ("fetched_xi", None),      # fetch-ALL computed XI components
+]:
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+# ----------------- Project imports (after path guard & login) -----------------
 from audits.cortex import compute_risk
 from audits.tracex import weighted_index, TI_DEFAULT, XI_DEFAULT, apply_gate
 from audits.traceability import compute_TI_components_from_uploads
@@ -83,7 +96,7 @@ from audits.explainability import compute_XI_components_from_uploads
 
 st.title("AI Audit-as-Code — CORTEX + TRACE-X (Hosted)")
 
-# Load presets (risk + TI/XI weights + tiers)
+# ----------------- Load presets -----------------
 preset_path = os.path.join(REPO_ROOT, "configs", "jurisdictions.yaml")
 presets = {}
 if os.path.exists(preset_path):
@@ -93,7 +106,7 @@ if os.path.exists(preset_path):
     except Exception as e:
         st.sidebar.error(f"Preset load error: {e}")
 
-# Default in-session policy
+# Default policy if none in session
 default_policy = {
     "meta": {"name":"Hosted Demo Policy","version":"0.4"},
     "risk_inputs": {"L":0.8,"I":0.7,"k":3.0,"C":0.75,"G":0.80,"T":0.60,"E":0.70,"R":0.65},
@@ -111,7 +124,7 @@ if "policy" not in st.session_state:
 
 left, right = st.columns(2)
 
-# -------- Right: Presets + Policy Sliders --------
+# ----------------- RIGHT: Jurisdiction & Policy -----------------
 with right:
     st.subheader("Jurisdiction & Policy")
     pick = st.selectbox("Apply preset", ["(none)"] + list(presets.keys()))
@@ -126,15 +139,15 @@ with right:
     with st.expander("CORTEX modifiers"):
         ri = st.session_state.policy["risk_inputs"]
         row1 = st.columns(4)
-        L  = row1[0].slider("L",  0.0,1.0, float(ri["L"]), 0.01)
-        I  = row1[1].slider("I",  0.0,1.0, float(ri["I"]), 0.01)
-        k  = row1[2].slider("k",  1.0,8.0, float(ri["k"]), 0.1)
-        Cx = row1[3].slider("C",  0.0,1.0, float(ri["C"]), 0.01)
+        L  = row1[0].slider("L (likelihood)",  0.0,1.0, float(ri["L"]), 0.01)
+        I  = row1[1].slider("I (impact)",      0.0,1.0, float(ri["I"]), 0.01)
+        k  = row1[2].slider("k (risk aversion)", 1.0,8.0, float(ri["k"]), 0.1)
+        Cx = row1[3].slider("C (controls)",    0.0,1.0, float(ri["C"]), 0.01)
         row2 = st.columns(4)
-        G  = row2[0].slider("G",  0.0,1.0, float(ri["G"]), 0.01)
-        T  = row2[1].slider("T",  0.0,1.0, float(ri["T"]), 0.01)
-        E  = row2[2].slider("E",  0.0,1.0, float(ri["E"]), 0.01)
-        Rm = row2[3].slider("R",  0.0,1.0, float(ri["R"]), 0.01)
+        G  = row2[0].slider("G (governance)",  0.0,1.0, float(ri["G"]), 0.01)
+        T  = row2[1].slider("T (traceability)",0.0,1.0, float(ri["T"]), 0.01)
+        E  = row2[2].slider("E (explainability)",0.0,1.0, float(ri["E"]), 0.01)
+        Rm = row2[3].slider("R (residual)",    0.0,1.0, float(ri["R"]), 0.01)
 
     with st.expander("TRACE-X Gate Thresholds"):
         tiers = {}
@@ -157,7 +170,7 @@ with right:
             for k_xi, v in st.session_state.policy["xi_weights"].items():
                 xi_w[k_xi] = st.slider(f"XI.{k_xi}", 0.0,1.0, float(v), 0.05, key=f"xi_{k_xi}")
 
-    # Save updated policy
+    # Save updated policy back to session
     st.session_state.policy["risk_inputs"] = dict(L=L, I=I, k=k, C=Cx, G=G, T=T, E=E, R=Rm)
     st.session_state.policy["tiers"] = tiers
     st.session_state.policy["ti_weights"] = ti_w
@@ -166,7 +179,7 @@ with right:
     pol_yaml = yaml.safe_dump(st.session_state.policy, sort_keys=False)
     st.download_button("Download policy.yaml", pol_yaml, "policy.yaml", "text/yaml")
 
-# -------- Left: Evidence (manual + fetch) --------
+# ----------------- LEFT: Evidence + Buttons -----------------
 with left:
     st.subheader("Evidence")
 
@@ -200,9 +213,14 @@ with left:
             try:
                 r = requests.get(url, timeout=10); r.raise_for_status()
                 fetched = r.json()
+                st.session_state["fetched_single"] = fetched   # persist XI-only dict
                 st.success("Fetched JSON:"); st.json(fetched)
             except Exception as e:
                 st.error(f"Fetch failed: {e}")
+
+        if st.button("Clear single JSON fetched"):
+            st.session_state["fetched_single"] = None
+            st.info("Cleared single JSON fetch.")
 
     # --- Fetch ALL tab ---
     with tab_all:
@@ -225,11 +243,10 @@ with left:
             at_json = get_json("audit_trail.json")
             rr_json = get_json("replication.json")
             mc_json = get_json("model_card.json")
-            dataset_present = requests.get(f"{base}/dataset.hash", timeout=10).ok
+            dataset_present  = requests.get(f"{base}/dataset.hash", timeout=10).ok
             trainlog_present = requests.get(f"{base}/logs/train.log", timeout=10).ok
 
-            from audits.traceability import compute_TI_components_from_uploads
-            ti_comp = compute_TI_components_from_uploads(
+            ti_comp_all = compute_TI_components_from_uploads(
                 dataset_present,
                 mc_json,
                 trainlog_present,
@@ -237,8 +254,7 @@ with left:
                 rr_json
             )
 
-            from audits.explainability import compute_XI_components_from_uploads
-            xi_comp = compute_XI_components_from_uploads(
+            xi_comp_all = compute_XI_components_from_uploads(
                 get_json("explainability/local_fidelity.json"),
                 get_json("explainability/global_stability.json"),
                 get_json("explainability/faithfulness.json"),
@@ -247,10 +263,94 @@ with left:
                 get_json("explainability/human_comprehensibility.json"),
             )
 
-            st.session_state["fetched_ti"] = ti_comp
-            st.session_state["fetched_xi"] = xi_comp
+            st.session_state["fetched_ti"] = ti_comp_all
+            st.session_state["fetched_xi"] = xi_comp_all
             st.success("Fetched TI & XI evidence from base URL. Now click ‘Run Audit’.")
+
+        if st.button("Clear ALL fetched evidence"):
+            st.session_state["fetched_ti"] = None
+            st.session_state["fetched_xi"] = None
+            st.info("Cleared fetched TI & XI.")
 
     # --- Button immediately under the tabs ---
     st.markdown("---")
     run_clicked = st.button("Run Audit", type="primary")
+
+# ======================= Run Audit handler =======================
+if run_clicked:
+    def load_json(file):
+        if not file:
+            return None
+        try:
+            return json.load(file)
+        except:
+            return None
+
+    # 1) Build from MANUAL uploads (default baseline)
+    at_json = load_json(audit_trail)
+    rr_json = load_json(replication)
+
+    ti_comp = compute_TI_components_from_uploads(
+        dataset_hash is not None,
+        load_json(model_card),
+        train_log is not None,
+        at_json,
+        rr_json
+    )
+
+    xi_comp = compute_XI_components_from_uploads(
+        load_json(lf), load_json(gf), load_json(fa),
+        load_json(rs), load_json(cl), load_json(hc)
+    )
+
+    # 2) Merge SINGLE-URL fetched explainability (keeps manual TI; augments XI only)
+    fetched_single = st.session_state.get("fetched_single")
+    if fetched_single:
+        map_to = {
+            "r2": "LF",
+            "spearman": "GF",
+            "deletion_auc": "FA",
+            "jaccard_topk": "RS",
+            "coverage": "CL",
+            "score": "HC",
+        }
+        for k, v in map_to.items():
+            if k in fetched_single:
+                try:
+                    xi_comp[v] = float(fetched_single[k])
+                except:
+                    pass
+
+    # 3) Prefer FETCH-ALL (base URL) if present — full overrides for TI & XI
+    if st.session_state.get("fetched_ti"):
+        ti_comp = st.session_state["fetched_ti"]
+    if st.session_state.get("fetched_xi"):
+        xi_comp = st.session_state["fetched_xi"]
+
+    # 4) Compute indices and gate
+    TI = weighted_index(ti_comp, st.session_state.policy["ti_weights"])
+    XI = weighted_index(xi_comp, st.session_state.policy["xi_weights"])
+    risk, utility = compute_risk(st.session_state.policy["risk_inputs"])
+    gate = apply_gate(risk, TI, XI, st.session_state.policy["tiers"])
+
+    # 5) Display results
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Risk", f"{risk:.3f}")
+    c2.metric("TI", f"{TI:.3f}")
+    c3.metric("XI", f"{XI:.3f}")
+
+    st.subheader("Gate Decision"); st.json(gate)
+    st.subheader("Traceability Components"); st.bar_chart(ti_comp)
+    st.subheader("Explainability Components"); st.bar_chart(xi_comp)
+
+    report = {
+        "risk": {"value": risk, "utility_core": utility, "inputs": st.session_state.policy["risk_inputs"]},
+        "traceability": {"components": ti_comp, "TI": TI},
+        "explainability": {"components": xi_comp, "XI": XI},
+        "gate": gate,
+        "policy": st.session_state.policy.get("meta", {}),
+    }
+    blob = base64.urlsafe_b64encode(json.dumps(report).encode()).decode()
+    st.download_button("Download audit_report.json", json.dumps(report, indent=2), "audit_report.json", "application/json")
+    st.info("Read-only share link (append to your app URL):")
+    st.code(f"?mode=share&data={blob}", language="text")
