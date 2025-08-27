@@ -50,7 +50,7 @@ CREDENTIALS = {
 }
 
 authenticator = stauth.Authenticate(CREDENTIALS,"audit_cookie","audit_key",cookie_expiry_days=1)
-name, auth_status, username = authenticator.login("Login","main")
+name, auth_status, username = authenticator.login("Login",location="main")
 if not auth_status: st.stop()
 authenticator.logout("Logout","sidebar")
 
