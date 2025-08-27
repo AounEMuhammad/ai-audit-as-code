@@ -1,0 +1,288 @@
+EU AI Act (Annex III - Critical):
+  risk_inputs:
+    L: 0.9
+    I: 0.95
+    k: 3.0
+    C: 0.9
+    G: 0.95
+    T: 0.85
+    E: 0.9
+    R: 0.8
+  tiers:
+    critical:
+      ti_min: 0.85
+      xi_min: 0.8
+    high:
+      ti_min: 0.75
+      xi_min: 0.75
+    moderate:
+      ti_min: 0.65
+      xi_min: 0.65
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.25
+    RR: 0.15
+  xi_weights:
+    LF: 0.15
+    GF: 0.15
+    FA: 0.2
+    RS: 0.2
+    CL: 0.15
+    HC: 0.15
+NIST AI RMF (High governance posture):
+  risk_inputs:
+    L: 0.8
+    I: 0.85
+    k: 3.0
+    C: 0.8
+    G: 0.9
+    T: 0.7
+    E: 0.75
+    R: 0.7
+  tiers:
+    critical:
+      ti_min: 0.8
+      xi_min: 0.8
+    high:
+      ti_min: 0.7
+      xi_min: 0.7
+    moderate:
+      ti_min: 0.6
+      xi_min: 0.6
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.2
+    RR: 0.2
+  xi_weights:
+    LF: 0.2
+    GF: 0.15
+    FA: 0.2
+    RS: 0.15
+    CL: 0.15
+    HC: 0.15
+"ISO/IEC 42001 (AIMS \u2013 regulated enterprise)":
+  risk_inputs:
+    L: 0.85
+    I: 0.9
+    k: 3.0
+    C: 0.85
+    G: 0.95
+    T: 0.75
+    E: 0.8
+    R: 0.75
+  tiers:
+    critical:
+      ti_min: 0.85
+      xi_min: 0.8
+    high:
+      ti_min: 0.75
+      xi_min: 0.75
+    moderate:
+      ti_min: 0.65
+      xi_min: 0.65
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.25
+    RR: 0.15
+  xi_weights:
+    LF: 0.15
+    GF: 0.15
+    FA: 0.2
+    RS: 0.2
+    CL: 0.15
+    HC: 0.15
+OECD AI Principles (transparency & robustness):
+  risk_inputs:
+    L: 0.7
+    I: 0.75
+    k: 3.0
+    C: 0.75
+    G: 0.8
+    T: 0.65
+    E: 0.7
+    R: 0.6
+  tiers:
+    critical:
+      ti_min: 0.8
+      xi_min: 0.75
+    high:
+      ti_min: 0.7
+      xi_min: 0.7
+    moderate:
+      ti_min: 0.6
+      xi_min: 0.6
+    low:
+      ti_min: 0.5
+      xi_min: 0.5
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.2
+    RR: 0.2
+  xi_weights:
+    LF: 0.2
+    GF: 0.15
+    FA: 0.2
+    RS: 0.15
+    CL: 0.15
+    HC: 0.15
+UNESCO AI Ethics (auditability & human oversight):
+  risk_inputs:
+    L: 0.75
+    I: 0.8
+    k: 3.0
+    C: 0.85
+    G: 0.85
+    T: 0.65
+    E: 0.7
+    R: 0.65
+  tiers:
+    critical:
+      ti_min: 0.8
+      xi_min: 0.8
+    high:
+      ti_min: 0.7
+      xi_min: 0.7
+    moderate:
+      ti_min: 0.6
+      xi_min: 0.6
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.25
+    RR: 0.15
+  xi_weights:
+    LF: 0.15
+    GF: 0.15
+    FA: 0.2
+    RS: 0.15
+    CL: 0.15
+    HC: 0.2
+ISO/IEC 23894 (AI risk management):
+  risk_inputs:
+    L: 0.8
+    I: 0.85
+    k: 3.0
+    C: 0.8
+    G: 0.9
+    T: 0.7
+    E: 0.75
+    R: 0.7
+  tiers:
+    critical:
+      ti_min: 0.8
+      xi_min: 0.8
+    high:
+      ti_min: 0.7
+      xi_min: 0.7
+    moderate:
+      ti_min: 0.6
+      xi_min: 0.6
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.2
+    RR: 0.2
+  xi_weights:
+    LF: 0.2
+    GF: 0.15
+    FA: 0.2
+    RS: 0.15
+    CL: 0.15
+    HC: 0.15
+GDPR / ICO AI Auditing (data protection & logic disclosure):
+  risk_inputs:
+    L: 0.75
+    I: 0.85
+    k: 3.0
+    C: 0.85
+    G: 0.9
+    T: 0.65
+    E: 0.7
+    R: 0.7
+  tiers:
+    critical:
+      ti_min: 0.85
+      xi_min: 0.8
+    high:
+      ti_min: 0.75
+      xi_min: 0.75
+    moderate:
+      ti_min: 0.65
+      xi_min: 0.65
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.25
+    RR: 0.15
+  xi_weights:
+    LF: 0.15
+    GF: 0.15
+    FA: 0.2
+    RS: 0.15
+    CL: 0.2
+    HC: 0.15
+FDA/IMDRF SaMD & GMLP (medical devices):
+  risk_inputs:
+    L: 0.85
+    I: 0.95
+    k: 3.0
+    C: 0.9
+    G: 0.95
+    T: 0.8
+    E: 0.85
+    R: 0.85
+  tiers:
+    critical:
+      ti_min: 0.85
+      xi_min: 0.8
+    high:
+      ti_min: 0.75
+      xi_min: 0.75
+    moderate:
+      ti_min: 0.65
+      xi_min: 0.65
+    low:
+      ti_min: 0.55
+      xi_min: 0.55
+  ti_weights:
+    DV: 0.2
+    MV: 0.2
+    PL: 0.2
+    AT: 0.25
+    RR: 0.25
+  xi_weights:
+    LF: 0.15
+    GF: 0.15
+    FA: 0.2
+    RS: 0.2
+    CL: 0.15
+    HC: 0.15
