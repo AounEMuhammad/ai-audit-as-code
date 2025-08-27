@@ -60,6 +60,11 @@ jobs:
       #     print("Evidence schema OK.")
       #     PY
 
+            - name: Validate evidence schema
+        run: |
+          pip install requests
+          python pipelines/validate_evidence.py
+
       - name: Run policy gate (PR must satisfy gate)
         run: |
           python pipelines/run_cli_audit.py
