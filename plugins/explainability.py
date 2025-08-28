@@ -26,3 +26,25 @@ def ars(artifacts: dict) -> dict:
     xi   = float(artifacts.get("XI", artifacts.get("xi", 0.6)) or 0.6)
     ti   = float(artifacts.get("TI", artifacts.get("ti", 0.6)) or 0.6)
     return {"ARS": float(0.4*base + 0.3*xi + 0.3*ti)}
+# plugins/explainability.py
+
+from audits.registry import plugin_registry
+import numpy as np
+
+@plugin_registry.metric("XI")
+def xi(artifacts):
+    """
+    Compute XI using multiple explainability evidence sources.
+    Includes local_fidelity, global_stability, faithfulness, robustness,
+    coverage, human_comprehensibility, shap, counterfactuals, saliency.
+    """
+    def s(path, key="score", default=0.7):
+        return float(artifacts.get(path, {}).get(key, default))
+    parts = [
+        s("local_fidelity"), s("global_stability"), s("faithfulness"),
+        s("robustness"), s("coverage"), s("human_comprehensibility"),
+        float(artifacts.get("shap", {}).get("consistency", 0.7)),
+        float(artifacts.get("counterfactuals", {}).get("validity", 0.7)),
+        float(artifacts.get("saliency", {}).get("stability", 0.7)),
+    ]
+    return {"XI": float(np.mean(parts))}
