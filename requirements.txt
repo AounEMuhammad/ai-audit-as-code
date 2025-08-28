@@ -5,3 +5,4 @@ bcrypt
 pydantic>=2.7
 numpy>=1.26
 plotly>=5.24
+pandas>=2.2
