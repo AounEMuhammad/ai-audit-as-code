@@ -2,6 +2,8 @@
 import os, json, glob
 import pandas as pd
 import streamlit as st
+from audits.gates.engine import compute_metrics, run_gates
+import yaml
 
 # graceful Plotly import (add plotly>=5.24 and pandas>=2.2 to requirements.txt)
 try:
