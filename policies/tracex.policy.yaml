@@ -1,0 +1,18 @@
+# policies/tracex.policy.yaml
+version: 0.3
+presets:
+  eu_ai_act_hra:
+    thresholds: { TI: 0.75, XI: 0.70, ARS: 0.72 }
+    required_evidence: [model_card, data_card, lineage, risk]
+    blockers:
+      - name: high_residual_risk
+        if: "R > 0.25"
+      - name: missing_traceability
+        if: "!has('lineage')"
+modes:
+  strict:
+    inherit: eu_ai_act_hra
+  fallback:
+    thresholds: { TI: 0.65, XI: 0.60, ARS: 0.65 }
+  demo:
+    thresholds: { TI: 0.50, XI: 0.50, ARS: 0.55 }
