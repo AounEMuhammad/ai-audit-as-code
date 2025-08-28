@@ -1,0 +1,49 @@
+{
+  "model_name": "rf-breast-cancer",
+  "version": "demo-1.0",
+  "framework": "sklearn",
+  "run_id": "20250828-022359",
+  "params": {
+    "n_estimators": 300,
+    "random_state": 0
+  },
+  "metrics": {
+    "auc": 0.9926255841121495,
+    "acc": 0.9415204678362573
+  },
+  "features": [
+    "mean radius",
+    "mean texture",
+    "mean perimeter",
+    "mean area",
+    "mean smoothness",
+    "mean compactness",
+    "mean concavity",
+    "mean concave points",
+    "mean symmetry",
+    "mean fractal dimension",
+    "radius error",
+    "texture error",
+    "perimeter error",
+    "area error",
+    "smoothness error",
+    "compactness error",
+    "concavity error",
+    "concave points error",
+    "symmetry error",
+    "fractal dimension error",
+    "worst radius",
+    "worst texture",
+    "worst perimeter",
+    "worst area",
+    "worst smoothness",
+    "worst compactness",
+    "worst concavity",
+    "worst concave points",
+    "worst symmetry",
+    "worst fractal dimension"
+  ],
+  "train_size": 398,
+  "test_size": 171,
+  "mlflow_tracking": "file:./mlruns"
+}
