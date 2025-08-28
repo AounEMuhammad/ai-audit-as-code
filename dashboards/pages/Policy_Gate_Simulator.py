@@ -59,3 +59,18 @@ if st.button("Save result to repo (scenarios_manual)"):
     with open(os.path.join(outdir, "gate_log.json"), "w", encoding="utf-8") as f:
         json.dump({"metrics": metrics, "result": result, "recommendation": result["decision"] if "recommendation" not in result else result["recommendation"]}, f, indent=2)
     st.success(f"Saved under {outdir}. You can point Risk Analytics to this folder or include it in batch eval.")
+# OPTIONAL: Persist this run so Risk Analytics can see it later
+import os, json, time
+label = st.text_input("Scenario label to save (folder name)", value=f"manual_{int(time.time())}")
+if st.button("Save run to repo (scenarios_manual/)"):
+    outdir = os.path.join("scenarios_manual", label)
+    os.makedirs(outdir, exist_ok=True)
+    # save uploaded evidence
+    for k, v in (evidence or {}).items():
+        with open(os.path.join(outdir, f"{k}.json"), "w", encoding="utf-8") as f:
+            json.dump(v, f, indent=2)
+    # save gate log
+    with open(os.path.join(outdir, "gate_log.json"), "w", encoding="utf-8") as f:
+        json.dump({"metrics": metrics, "result": result,
+                   "recommendation": "BLOCK" if result["decision"]=="FAIL" else "DEPLOY"}, f, indent=2)
+    st.success(f"Saved under {outdir}. Switch Risk Analytics to 'Recompute from folder' and set root to scenarios_manual.")
