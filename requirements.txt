@@ -2,3 +2,6 @@ streamlit
 pyyaml
 requests
 bcrypt
+pydantic>=2.7
+numpy>=1.26
+
