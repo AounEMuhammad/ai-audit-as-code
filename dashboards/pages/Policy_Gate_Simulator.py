@@ -46,3 +46,16 @@ c4.metric("R", f"{metrics.get('R',0):.2f}")
 
 st.subheader(f"Decision: {'✅ PASS' if result['decision']=='PASS' else '❌ FAIL'}")
 st.json(result)
+# --- OPTIONAL: Save this result to a scenarios folder so Risk Analytics can pick it up ---
+import os, json, time
+label = st.text_input("Scenario label for saving (folder name)", value=f"manual_{int(time.time())}")
+if st.button("Save result to repo (scenarios_manual)"):
+    outdir = os.path.join("scenarios_manual", label)
+    os.makedirs(outdir, exist_ok=True)
+    # Save inputs (evidence) and computed metrics/result
+    for k, v in (evidence or {}).items():
+        with open(os.path.join(outdir, f"{k}.json"), "w", encoding="utf-8") as f:
+            json.dump(v, f, indent=2)
+    with open(os.path.join(outdir, "gate_log.json"), "w", encoding="utf-8") as f:
+        json.dump({"metrics": metrics, "result": result, "recommendation": result["decision"] if "recommendation" not in result else result["recommendation"]}, f, indent=2)
+    st.success(f"Saved under {outdir}. You can point Risk Analytics to this folder or include it in batch eval.")
