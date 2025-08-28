@@ -1,0 +1,15 @@
+{
+  "scenario": "surgery_schedule_opt_075",
+  "domain": "surgery_schedule_opt",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.801,
+    "ARS": 0.833,
+    "R": 0.3
+  },
+  "blockers": [
+    "high_residual_risk"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.821383Z"
+}

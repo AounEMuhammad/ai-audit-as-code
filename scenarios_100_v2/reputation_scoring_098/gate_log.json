@@ -1,0 +1,16 @@
+{
+  "scenario": "reputation_scoring_098",
+  "domain": "reputation_scoring",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.677,
+    "ARS": 0.767,
+    "R": 0.1
+  },
+  "blockers": [
+    "fairness_minority_gap",
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.938742Z"
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "forest_fire_risk_085",
+  "domain": "forest_fire_risk",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.736,
+    "ARS": 0.784,
+    "R": 0.2
+  },
+  "blockers": [
+    "fairness_minority_gap"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.915582Z"
+}

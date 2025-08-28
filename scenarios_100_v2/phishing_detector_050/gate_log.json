@@ -1,0 +1,15 @@
+{
+  "scenario": "phishing_detector_050",
+  "domain": "phishing_detector",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.757,
+    "ARS": 0.856,
+    "R": 0.0
+  },
+  "blockers": [
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.609922Z"
+}

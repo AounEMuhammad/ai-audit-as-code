@@ -1,0 +1,15 @@
+{
+  "scenario": "biometric_dedup_071",
+  "domain": "biometric_dedup",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.633,
+    "ARS": 0.764,
+    "R": 0.1
+  },
+  "blockers": [
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.770044Z"
+}

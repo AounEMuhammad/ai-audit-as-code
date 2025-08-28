@@ -1,0 +1,13 @@
+{
+  "scenario": "air_quality_forecast_065",
+  "domain": "air_quality_forecast",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.709,
+    "ARS": 0.856,
+    "R": 0.0
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH AUDIT",
+  "ts": "2025-08-28T01:24:28.721305Z"
+}

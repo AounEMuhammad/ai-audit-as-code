@@ -1,0 +1,13 @@
+{
+  "scenario": "road_crack_detector_088",
+  "domain": "road_crack_detector",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.653,
+    "ARS": 0.854,
+    "R": 0.2
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH AUDIT",
+  "ts": "2025-08-28T01:24:28.921363Z"
+}

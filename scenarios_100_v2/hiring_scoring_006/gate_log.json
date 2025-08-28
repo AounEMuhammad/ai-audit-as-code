@@ -1,0 +1,15 @@
+{
+  "scenario": "hiring_scoring_006",
+  "domain": "hiring_scoring",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.723,
+    "ARS": 0.802,
+    "R": 0.2
+  },
+  "blockers": [
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.305217Z"
+}

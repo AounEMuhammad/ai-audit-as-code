@@ -1,0 +1,22 @@
+{
+  "attacks": {
+    "attack_0": {
+      "broke": false
+    },
+    "attack_1": {
+      "broke": false
+    },
+    "attack_2": {
+      "broke": false
+    },
+    "attack_3": {
+      "broke": false
+    },
+    "attack_4": {
+      "broke": false
+    },
+    "attack_5": {
+      "broke": false
+    }
+  }
+}

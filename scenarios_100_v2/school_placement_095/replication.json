@@ -1,0 +1,14 @@
+{
+  "steps": [
+    "fetch_data",
+    "preprocess",
+    "train",
+    "evaluate",
+    "explain"
+  ],
+  "env": {
+    "python": "3.11.9",
+    "container": "docker://python:3.11-slim",
+    "seed": 1337
+  }
+}

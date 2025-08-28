@@ -1,0 +1,15 @@
+{
+  "scenario": "refugee_services_triage_093",
+  "domain": "refugee_services_triage",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.695,
+    "ARS": 0.797,
+    "R": 0.0
+  },
+  "blockers": [
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.929474Z"
+}

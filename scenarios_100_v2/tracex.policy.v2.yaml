@@ -1,0 +1,23 @@
+version: 0.4
+presets:
+  eu_ai_act_hra:
+    thresholds: { TI: 0.75, XI: 0.72, ARS: 0.74 }
+    required_evidence: [
+      dataset, model_card, data_card, lineage, risk, audit_trail, replication,
+      local_fidelity, global_stability, faithfulness, robustness, coverage, human_comprehensibility
+    ]
+    blockers:
+      - name: high_residual_risk
+        if: "R > 0.25"
+      - name: missing_traceability
+        if: "!has('lineage')"
+      - name: fairness_minority_gap
+        if: "fairness_gap > 0.10"
+      - name: pii_leakage_scan
+        if: "pii_high > 0"
+modes:
+  strict: { }
+  fallback:
+    thresholds: { TI: 0.65, XI: 0.65, ARS: 0.68 }
+  demo:
+    thresholds: { TI: 0.50, XI: 0.55, ARS: 0.58 }

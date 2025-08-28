@@ -1,0 +1,13 @@
+{
+  "scenario": "ambulance_dispatch_083",
+  "domain": "ambulance_dispatch",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.746,
+    "ARS": 0.843,
+    "R": 0.2
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.912620Z"
+}

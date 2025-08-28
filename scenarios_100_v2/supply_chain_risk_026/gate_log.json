@@ -1,0 +1,13 @@
+{
+  "scenario": "supply_chain_risk_026",
+  "domain": "supply_chain_risk",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.76,
+    "ARS": 0.822,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.420345Z"
+}

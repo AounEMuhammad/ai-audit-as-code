@@ -1,0 +1,13 @@
+{
+  "scenario": "age_estimation_kiosk_044",
+  "domain": "age_estimation_kiosk",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.738,
+    "ARS": 0.698,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "PILOT",
+  "ts": "2025-08-28T01:24:28.550474Z"
+}

@@ -1,0 +1,13 @@
+{
+  "scenario": "exam_proctoring_047",
+  "domain": "exam_proctoring",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.71,
+    "ARS": 0.702,
+    "R": 0.2
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.569619Z"
+}

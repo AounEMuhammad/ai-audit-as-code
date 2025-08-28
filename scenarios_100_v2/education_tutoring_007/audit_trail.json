@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "ts": "2025-08-28T01:24:28.306674Z",
+      "actor": "ci-bot",
+      "action": "train"
+    },
+    {
+      "ts": "2025-08-28T01:24:28.306676Z",
+      "actor": "ci-bot",
+      "action": "explainability"
+    },
+    {
+      "ts": "2025-08-28T01:24:28.306678Z",
+      "actor": "auditor",
+      "action": "review"
+    }
+  ]
+}

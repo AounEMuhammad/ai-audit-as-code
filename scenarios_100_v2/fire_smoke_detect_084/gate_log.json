@@ -1,0 +1,13 @@
+{
+  "scenario": "fire_smoke_detect_084",
+  "domain": "fire_smoke_detect",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.685,
+    "ARS": 0.791,
+    "R": 0.0
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.914138Z"
+}

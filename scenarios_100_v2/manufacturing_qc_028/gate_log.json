@@ -1,0 +1,15 @@
+{
+  "scenario": "manufacturing_qc_028",
+  "domain": "manufacturing_qc",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.663,
+    "ARS": 0.822,
+    "R": 0.1
+  },
+  "blockers": [
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.507277Z"
+}

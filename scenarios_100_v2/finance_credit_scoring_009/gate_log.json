@@ -1,0 +1,16 @@
+{
+  "scenario": "finance_credit_scoring_009",
+  "domain": "finance_credit_scoring",
+  "metrics": {
+    "TI": 0.0,
+    "XI": 0.68,
+    "ARS": 0.534,
+    "R": 0.3
+  },
+  "blockers": [
+    "high_residual_risk",
+    "missing_traceability"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.326850Z"
+}

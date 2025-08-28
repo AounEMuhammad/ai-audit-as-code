@@ -1,0 +1,15 @@
+{
+  "scenario": "legal_triage_019",
+  "domain": "legal_triage",
+  "metrics": {
+    "TI": 0.0,
+    "XI": 0.644,
+    "ARS": 0.455,
+    "R": 0.1
+  },
+  "blockers": [
+    "missing_traceability"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.345549Z"
+}

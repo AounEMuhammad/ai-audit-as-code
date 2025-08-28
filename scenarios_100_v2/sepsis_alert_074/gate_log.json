@@ -1,0 +1,13 @@
+{
+  "scenario": "sepsis_alert_074",
+  "domain": "sepsis_alert",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.658,
+    "ARS": 0.797,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.816631Z"
+}

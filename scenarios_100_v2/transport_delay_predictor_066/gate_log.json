@@ -1,0 +1,13 @@
+{
+  "scenario": "transport_delay_predictor_066",
+  "domain": "transport_delay_predictor",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.74,
+    "ARS": 0.823,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.723652Z"
+}

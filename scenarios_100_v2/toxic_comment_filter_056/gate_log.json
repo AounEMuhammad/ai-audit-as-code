@@ -1,0 +1,16 @@
+{
+  "scenario": "toxic_comment_filter_056",
+  "domain": "toxic_comment_filter",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.66,
+    "ARS": 0.726,
+    "R": 0.3
+  },
+  "blockers": [
+    "high_residual_risk",
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.622919Z"
+}

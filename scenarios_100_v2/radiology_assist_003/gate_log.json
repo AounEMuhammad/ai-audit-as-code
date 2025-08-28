@@ -1,0 +1,13 @@
+{
+  "scenario": "radiology_assist_003",
+  "domain": "radiology_assist",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.679,
+    "ARS": 0.803,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.270203Z"
+}
