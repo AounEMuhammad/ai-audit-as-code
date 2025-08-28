@@ -4,6 +4,13 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ModuleNotFoundError:
+    import streamlit as st
+    st.error("Plotly is required for Risk Analytics. Please add `plotly>=5.24` to requirements.txt and redeploy.")
+    st.stop()
 
 st.set_page_config(page_title="Risk Analytics", layout="wide")
 st.title("AI Audit-as-Code — Risk Analytics")
