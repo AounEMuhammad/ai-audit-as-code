@@ -1,0 +1,15 @@
+{
+  "scenario": "aml_transaction_monitoring_022",
+  "domain": "aml_transaction_monitoring",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.662,
+    "ARS": 0.777,
+    "R": 0.2
+  },
+  "blockers": [
+    "fairness_minority_gap"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.405812Z"
+}

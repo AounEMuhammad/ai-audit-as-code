@@ -1,0 +1,16 @@
+{
+  "scenario": "university_admissions_096",
+  "domain": "university_admissions",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.729,
+    "ARS": 0.778,
+    "R": 0.1
+  },
+  "blockers": [
+    "fairness_minority_gap",
+    "pii_leakage_scan"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.935476Z"
+}

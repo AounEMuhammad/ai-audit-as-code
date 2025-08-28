@@ -1,0 +1,15 @@
+{
+  "scenario": "personalization_engine_059",
+  "domain": "personalization_engine",
+  "metrics": {
+    "TI": 0.0,
+    "XI": 0.745,
+    "ARS": 0.53,
+    "R": 0.0
+  },
+  "blockers": [
+    "missing_traceability"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.709480Z"
+}

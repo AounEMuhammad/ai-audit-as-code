@@ -1,0 +1,15 @@
+{
+  "scenario": "scholarship_ranking_046",
+  "domain": "scholarship_ranking",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.711,
+    "ARS": 0.766,
+    "R": 0.0
+  },
+  "blockers": [
+    "fairness_minority_gap"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.554335Z"
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "billing_coder_ai_079",
+  "domain": "billing_coder_ai",
+  "metrics": {
+    "TI": 0.0,
+    "XI": 0.675,
+    "ARS": 0.5,
+    "R": 0.1
+  },
+  "blockers": [
+    "missing_traceability"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.834098Z"
+}

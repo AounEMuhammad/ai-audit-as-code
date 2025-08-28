@@ -1,0 +1,13 @@
+{
+  "scenario": "school_bus_routing_045",
+  "domain": "school_bus_routing",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.745,
+    "ARS": 0.868,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH AUDIT",
+  "ts": "2025-08-28T01:24:28.552454Z"
+}

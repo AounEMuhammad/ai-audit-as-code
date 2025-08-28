@@ -1,0 +1,16 @@
+{
+  "scenario": "document_classification_060",
+  "domain": "document_classification",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.754,
+    "ARS": 0.763,
+    "R": 0.4
+  },
+  "blockers": [
+    "high_residual_risk",
+    "fairness_minority_gap"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.712170Z"
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "mining_safety_monitor_031",
+  "domain": "mining_safety_monitor",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.703,
+    "ARS": 0.815,
+    "R": 0.0
+  },
+  "blockers": [
+    "fairness_minority_gap"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.527686Z"
+}

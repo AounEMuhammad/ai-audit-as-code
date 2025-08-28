@@ -1,0 +1,13 @@
+{
+  "scenario": "icu_mortality_risk_073",
+  "domain": "icu_mortality_risk",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.755,
+    "ARS": 0.71,
+    "R": 0.1
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.812753Z"
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "trading_assistant_011",
+  "domain": "trading_assistant",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.702,
+    "ARS": 0.828,
+    "R": 0.3
+  },
+  "blockers": [
+    "high_residual_risk"
+  ],
+  "recommendation": "BLOCK",
+  "ts": "2025-08-28T01:24:28.331104Z"
+}

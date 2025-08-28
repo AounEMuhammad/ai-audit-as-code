@@ -1,0 +1,13 @@
+{
+  "scenario": "baggage_screening_069",
+  "domain": "baggage_screening",
+  "metrics": {
+    "TI": 1.0,
+    "XI": 0.72,
+    "ARS": 0.721,
+    "R": 0.0
+  },
+  "blockers": [],
+  "recommendation": "DEPLOY WITH CONTROLS",
+  "ts": "2025-08-28T01:24:28.731004Z"
+}
