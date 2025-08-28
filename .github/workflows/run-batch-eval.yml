@@ -1,0 +1,39 @@
+name: Run Audit Batch Evaluator
+
+on:
+  # Manual run from the Actions tab
+  workflow_dispatch: {}
+
+jobs:
+  eval-all-modes:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mode: [strict, fallback, demo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Run batch evaluator (${{ matrix.mode }})
+        run: |
+          mkdir -p reports/audit_results
+          python -m audits.tools.batch_eval \
+            --policy policies/tracex.policy.v2.yaml \
+            --root scenarios_100_v2 \
+            --mode ${{ matrix.mode }} \
+            --out reports/audit_results
+
+      - name: Upload summaries (${{ matrix.mode }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-${{ matrix.mode }}
+          path: reports/audit_results/summary_${{ matrix.mode }}.*
+          if-no-files-found: error
