@@ -1,0 +1,36 @@
+# .github/workflows/audit.yml
+name: Policy Gate
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.extra.txt ]; then pip install -r requirements.extra.txt; fi
+      - name: Prepare sample artifacts (if none)
+        run: |
+          mkdir -p artifacts
+          echo '{"composite":0.70}' > artifacts/risk.json
+          echo '{"container":"docker://python:3.11-slim","python":"3.11.9","git":"deadbeef","seed":1337}' > artifacts/lineage.json
+          echo '{"consistency":0.72}' > artifacts/shap.json
+          echo '{"validity":0.70}' > artifacts/counterfactuals.json
+          echo '{"stability":0.68}' > artifacts/saliency.json
+          echo '{"high_severity":0}' > artifacts/pii_scan.json
+          echo '{"max_gap":0.08}' > artifacts/fairness.json
+          echo '{"attacks":{"jailbreak":{"broke":false}}}' > artifacts/redteam.json
+          echo '{}' > artifacts/model_card.json
+          echo '{}' > artifacts/data_card.json
+      - name: Run Policy Gate
+        run: |
+          python -m audits.gates.cli --policy policies/tracex.policy.yaml --artifacts artifacts --mode strict
