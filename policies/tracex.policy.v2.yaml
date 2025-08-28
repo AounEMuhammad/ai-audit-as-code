@@ -1,23 +1,60 @@
-version: 0.4
-presets:
-  eu_ai_act_hra:
-    thresholds: { TI: 0.75, XI: 0.72, ARS: 0.74 }
-    required_evidence: [
-      dataset, model_card, data_card, lineage, risk, audit_trail, replication,
-      local_fidelity, global_stability, faithfulness, robustness, coverage, human_comprehensibility
-    ]
-    blockers:
-      - name: high_residual_risk
-        if: "R > 0.25"
-      - name: missing_traceability
-        if: "!has('lineage')"
-      - name: fairness_minority_gap
-        if: "fairness_gap > 0.10"
-      - name: pii_leakage_scan
-        if: "pii_high > 0"
-modes:
-  strict: { }
-  fallback:
-    thresholds: { TI: 0.65, XI: 0.65, ARS: 0.68 }
-  demo:
-    thresholds: { TI: 0.50, XI: 0.55, ARS: 0.58 }
+# policies/tracex.policy.v2.yaml
+# TRACE-X policy (v2) used by the Risk Analytics page and Policy Gate.
+# - Encodes risk tiers, TI/XI gate thresholds, ARS formula, and ARS decision bands.
+# - Also lists the evidence files that feed TI/XI scoring (names align with your earlier evidence schema).
+
+name: TRACE-X v2 policy
+version: "2.0"
+
+ars:
+  # TRACE-X formula: ARS = sqrt(Risk * min(TI, XI))
+  formula: "sqrt(risk * min(ti, xi))"
+
+  # UI convention: map ARS to human decisions using bands aligned to CORTEX numeric ranges.
+  decision_bands:
+    - { min: 0.85, decision: deploy_with_audits }
+    - { min: 0.70, decision: deploy_with_controls }
+    - { min: 0.50, decision: pilot }
+    - { min: 0.30, decision: limited_use }
+    - { min: 0.00, decision: sandbox }
+
+gates:
+  # CORTEX risk tiers (bands)
+  risk_tiers:
+    minimal:   [0.00, 0.29]
+    low:       [0.30, 0.49]
+    moderate:  [0.50, 0.69]
+    high:      [0.70, 0.84]
+    critical:  [0.85, 1.00]
+
+  # Minimum TI/XI required for each tier to pass the deployment gate
+  thresholds:
+    minimal:   { ti_min: 0.00, xi_min: 0.00, pass_decision: sandbox,                fail_decision: sandbox }
+    low:       { ti_min: 0.50, xi_min: 0.50, pass_decision: limited_use,            fail_decision: sandbox }
+    moderate:  { ti_min: 0.60, xi_min: 0.60, pass_decision: pilot,                  fail_decision: sandbox }
+    high:      { ti_min: 0.70, xi_min: 0.70, pass_decision: deploy_with_controls,   fail_decision: block }
+    critical:  { ti_min: 0.80, xi_min: 0.75, pass_decision: deploy_with_audits,     fail_decision: block }
+
+scoring:
+  # Default weights (can be re-used by scoring modules if they read this policy)
+  ti_weights: { DV: 0.20, MV: 0.20, PL: 0.20, AT: 0.20, RR: 0.20 }
+  xi_weights: { LF: 0.20, GF: 0.15, FA: 0.20, RS: 0.15, CL: 0.15, HC: 0.15 }
+
+evidence:
+  # Files / artefacts expected by the auditor. These are names your evaluator already emits/accepts.
+  traceability:
+    dataset_hash:            { pattern: "evidence/dataset.hash",          required: true }
+    model_card:              { pattern: "evidence/model_card.json",       required: true }
+    training_log:            { pattern: "logs/train.log",                  required: true }
+    audit_trail:             { pattern: "audit/audit_trail.json",          required: true }
+    replication_results:     { pattern: "evidence/replication.json",       required: true }
+  explainability:
+    local_fidelity:          { pattern: "evidence/local_fidelity.json",    required: true }
+    global_stability:        { pattern: "evidence/global_stability.json",  required: true }
+    faithfulness:            { pattern: "evidence/faithfulness.json",      required: true }
+    robustness:              { pattern: "evidence/robustness.json",        required: true }
+    coverage:                { pattern: "evidence/coverage.json",          required: true }
+    human_comprehensibility: { pattern: "evidence/human_comprehensibility.json", required: true }
+
+labels:
+  tier_order: [ minimal, low, moderate, high, critical ]
