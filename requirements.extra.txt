@@ -1,0 +1,5 @@
+# requirements.extra.txt
+PyYAML>=6.0
+pydantic>=2.7
+numpy>=1.26
+streamlit>=1.36
