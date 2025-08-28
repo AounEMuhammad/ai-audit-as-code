@@ -481,3 +481,4 @@ if run_clicked:
     st.download_button("Download audit_report.json", json.dumps(report, indent=2), "audit_report.json", "application/json")
     st.info("Read-only share link (append to your app URL):")
     st.code(f"?mode=share&data={blob}", language="text")
+st.sidebar.page_link("dashboards/pages/Policy_Gate_Simulator.py", label="Policy Gate Simulator")
