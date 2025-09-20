@@ -1,0 +1,7 @@
+{
+  "title": "Llama-3 Instruct (local)",
+  "version": "1.0",
+  "dataset": "N/A",
+  "limitations": "Small-run evidence for audit demo; not production-calibrated.",
+  "path": "/content/LLM"
+}

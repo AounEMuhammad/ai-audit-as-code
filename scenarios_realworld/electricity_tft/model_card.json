@@ -1,0 +1,6 @@
+{
+  "title": "TFT Electricity Forecast (synthetic fallback)",
+  "version": "1.0",
+  "dataset": "SyntheticSeries",
+  "limitations": "Small-run evidence for audit demo; not production-calibrated."
+}
