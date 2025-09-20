@@ -1,0 +1,3 @@
+scenario,mode,TI,XI,ARS,R,decision,recommendation,delta_TI,delta_XI,delta_ARS,missing_evidence,policy_blockers,validator_blockers,fix_it
+adult_income_xgb,strict,1.0,0.8403,0.64,0.0,FAIL,BLOCK,0.0,0.0,0.0,,,fairness_minority_gap,Blocker fairness_minority_gap → Reweight/resample/post-process; diverse data.
+toxic_distilbert,strict,1.0,0.752,0.64,0.4,FAIL,BLOCK,0.0,0.0,0.0,,,fairness_minority_gap;pii_leakage_scan,Blocker fairness_minority_gap → Reweight/resample/post-process; diverse data. | Blocker pii_leakage_scan → De-identify data; runtime PII filters.

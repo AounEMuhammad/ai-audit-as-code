@@ -1,0 +1,81 @@
+{
+  "runs": [
+    {
+      "scenario": "adult_income_xgb",
+      "mode": "strict",
+      "metrics": {
+        "XI": 0.8403233323616465,
+        "TI": 1.0,
+        "ARS": 0.6399999999999999,
+        "fairness_gap": 0.18174201635958623,
+        "pii_high": 0,
+        "R": 0.0
+      },
+      "result": {
+        "decision": "FAIL",
+        "thresholds": {},
+        "thresholds_ok": true,
+        "metrics": {
+          "XI": 0.8403233323616465,
+          "TI": 1.0,
+          "ARS": 0.6399999999999999,
+          "fairness_gap": 0.18174201635958623,
+          "pii_high": 0,
+          "R": 0.0
+        },
+        "missing_evidence": [],
+        "policy_blockers": [],
+        "validator_blockers": [
+          {
+            "name": "fairness_minority_gap",
+            "reason": "max_gap=0.182",
+            "metric": 0.18174201635958623
+          }
+        ],
+        "mode": "strict"
+      },
+      "fix_it": "Blocker fairness_minority_gap \u2192 Reweight/resample/post-process; diverse data."
+    },
+    {
+      "scenario": "toxic_distilbert",
+      "mode": "strict",
+      "metrics": {
+        "XI": 0.7520062720527877,
+        "TI": 1.0,
+        "ARS": 0.6399999999999999,
+        "fairness_gap": 0.2195847483411083,
+        "pii_high": 2,
+        "R": 0.4
+      },
+      "result": {
+        "decision": "FAIL",
+        "thresholds": {},
+        "thresholds_ok": true,
+        "metrics": {
+          "XI": 0.7520062720527877,
+          "TI": 1.0,
+          "ARS": 0.6399999999999999,
+          "fairness_gap": 0.2195847483411083,
+          "pii_high": 2,
+          "R": 0.4
+        },
+        "missing_evidence": [],
+        "policy_blockers": [],
+        "validator_blockers": [
+          {
+            "name": "fairness_minority_gap",
+            "reason": "max_gap=0.220",
+            "metric": 0.2195847483411083
+          },
+          {
+            "name": "pii_leakage_scan",
+            "reason": "high_severity=2",
+            "metric": 2
+          }
+        ],
+        "mode": "strict"
+      },
+      "fix_it": "Blocker fairness_minority_gap \u2192 Reweight/resample/post-process; diverse data. | Blocker pii_leakage_scan \u2192 De-identify data; runtime PII filters."
+    }
+  ]
+}

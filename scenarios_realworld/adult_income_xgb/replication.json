@@ -1,0 +1,15 @@
+{
+  "steps": [
+    "load",
+    "evaluate",
+    "explain",
+    "redteam"
+  ],
+  "env": {
+    "container": "docker://python:3.11-slim",
+    "python": "3.12.11",
+    "git": "018a58c2447ec2b26852f07f901c4f52c71a41f0",
+    "seed": 1337
+  },
+  "notes": "Use same seed/container to reproduce numbers."
+}
