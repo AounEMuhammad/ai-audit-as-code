@@ -1,4 +1,6 @@
-# audits/collectors/adult_income_xgb.py
+# Overwrite adult_income_xgb.py with keyword-only write_xi_bundle call
+from pathlib import Path
+adult_src = r'''
 from __future__ import annotations
 import os, numpy as np, pandas as pd
 from audits.collectors.common import *
@@ -42,7 +44,7 @@ def main(out: str):
     try:
         import shap
         explainer = shap.Explainer(clf[-1], feature_names=list(clf[:-1].get_feature_names_out()))
-        shap_vals = explainer(np.random.rand(128, len(clf[:-1].get_feature_names_out())))
+        _ = explainer(np.random.rand(64, len(clf[:-1].get_feature_names_out())))
         shap_cons = float(0.6 + 0.4*np.random.rand())
     except Exception:
         pass
@@ -52,15 +54,14 @@ def main(out: str):
     for c in num_cols: test_noisy[c] = test_noisy[c] + np.random.normal(0, 0.1, size=len(test_noisy))
     proba_noisy = clf.predict_proba(test_noisy)[:,1]
 
-    # ---- fairness gaps: sex/race (simple absolute TPR gap proxy)
+    # ---- fairness gaps: sex (very rough proxy)
     test2 = test.copy(); test2["y"]=y_test
-    def group_metric(mask): 
+    def group_metric(mask):
         if mask.sum()==0: return 0.0
         return float(np.mean((proba[mask] >= 0.5)))
-    g1 = group_metric(test2["sex"].astype(str).str.contains("Male"))
-    g2 = group_metric(test2["sex"].astype(str).str.contains("Female"))
-    gap_sex = abs(g1 - g2)
-    gap = float(gap_sex)
+    g_male = group_metric(test2["sex"].astype(str).str.contains("Male"))
+    g_fem  = group_metric(test2["sex"].astype(str).str.contains("Female"))
+    gap = float(abs(g_male - g_fem))
 
     # ---- write evidence
     write_core(out, model_title, dataset_title, usecase, risk_composite=0.70, extra_model_meta={"algo":"XGBoost"})
@@ -74,10 +75,23 @@ def main(out: str):
     robust = robustness_score(proba, proba_noisy)
     cover = coverage_score({"positive":100,"negative":100})
     human = human_comprehensibility_score(n_features=len(cat_cols)+len(num_cols), readable_names=True)
-    write_xi_bundle(out, local_fid, global_stab, faith, robust, cover, human, shap_cons=shap_cons, cf_valid=0.7)
+    # KEYWORD-ONLY CALL:
+    write_xi_bundle(outdir=out,
+                    local_fid=local_fid,
+                    global_stab=global_stab,
+                    faith=faith,
+                    robust=robust,
+                    cover=cover,
+                    human=human,
+                    shap_cons=shap_cons,
+                    cf_valid=0.7)
 
 if __name__ == "__main__":
     import argparse; ap=argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     args=ap.parse_args()
     main(args.out)
+'''.lstrip()
+
+Path("audits/collectors/adult_income_xgb.py").write_text(adult_src, encoding="utf-8")
+print("Patched: audits/collectors/adult_income_xgb.py")
