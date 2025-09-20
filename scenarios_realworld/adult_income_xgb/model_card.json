@@ -1,0 +1,7 @@
+{
+  "title": "XGBoost Adult Income",
+  "version": "1.0",
+  "dataset": "UCI Adult",
+  "limitations": "Small-run evidence for audit demo; not production-calibrated.",
+  "algo": "XGBoost"
+}

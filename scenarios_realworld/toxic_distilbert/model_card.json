@@ -1,0 +1,6 @@
+{
+  "title": "DistilBERT Toxic Classifier",
+  "version": "1.0",
+  "dataset": "Civil Comments (subset)",
+  "limitations": "Small-run evidence for audit demo; not production-calibrated."
+}
