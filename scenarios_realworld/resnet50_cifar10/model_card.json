@@ -1,0 +1,7 @@
+{
+  "title": "ResNet50 CIFAR-10",
+  "version": "1.0",
+  "dataset": "CIFAR-10",
+  "limitations": "Small-run evidence for audit demo; not production-calibrated.",
+  "weights": "IMAGENET1K_V2"
+}

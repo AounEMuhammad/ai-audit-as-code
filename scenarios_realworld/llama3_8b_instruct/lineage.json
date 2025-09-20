@@ -1,0 +1,6 @@
+{
+  "container": "docker://python:3.11-slim",
+  "python": "3.12.11",
+  "git": "1ec6cd376a5a16710f994e3768b161634101ce78",
+  "seed": 1337
+}

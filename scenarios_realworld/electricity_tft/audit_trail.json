@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "ts": "2025-09-20T08:48:17Z",
+      "actor": "ci-bot",
+      "action": "load_model"
+    },
+    {
+      "ts": "2025-09-20T08:48:17Z",
+      "actor": "ci-bot",
+      "action": "collect_evidence"
+    },
+    {
+      "ts": "2025-09-20T08:48:17Z",
+      "actor": "auditor",
+      "action": "review"
+    }
+  ]
+}
