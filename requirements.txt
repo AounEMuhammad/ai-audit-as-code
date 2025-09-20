@@ -6,3 +6,17 @@ pydantic>=2.7
 numpy>=1.26
 plotly>=5.24
 pandas>=2.2
+transformers
+datasets
+torch
+torchvision
+scikit-learn
+xgboost
+shap
+matplotlib
+pillow
+regex
+darts
+u8darts[all]
+torchmetrics
+pytorch-lightning
