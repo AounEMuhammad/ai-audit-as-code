@@ -1,0 +1,10 @@
+Hidden layers: hidden_layer_sizes=(100,) — one hidden layer of 100 neurons
+Activation: relu (ReLU on hidden layer)
+Output activation: softmax/logistic for classification (handled internally)
+Solver: adam
+Learning rate: learning_rate_init=0.001, schedule constant
+L2 regularization: alpha=0.0001
+Batch size: auto → min(200, n_samples)
+Max iterations (epochs): max_iter=200
+Early stopping: False (default)
+Random state: None unless you set a seed (you did fix seeds elsewhere for reproducibility)
